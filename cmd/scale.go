@@ -224,6 +224,7 @@ func (sc *scaleCmd) run(cmd *cobra.Command, args []string) error {
 				vmsToDelete = append(vmsToDelete, indexToVM[i])
 			}
 
+			// TODO OpenShift
 			if orchestratorInfo.OrchestratorType == api.Kubernetes {
 				err = sc.drainNodes(vmsToDelete)
 				if err != nil {
@@ -307,6 +308,7 @@ func (sc *scaleCmd) run(cmd *cobra.Command, args []string) error {
 	addValue(parametersJSON, sc.agentPool.Name+"Count", countForTemplate)
 
 	switch orchestratorInfo.OrchestratorType {
+	// TODO OpenShift
 	case api.Kubernetes:
 		err = transformer.NormalizeForK8sVMASScalingUp(sc.logger, templateJSON)
 		if err != nil {
