@@ -453,13 +453,16 @@ func setOrchestratorDefaults(cs *api.ContainerService) {
 		setCloudControllerManagerConfig(cs)
 		// Configure apiserver
 		setAPIServerConfig(cs)
-	case api.DCOS :
+	case api.DCOS:
 		if o.DcosConfig == nil {
 			o.DcosConfig = &api.DcosConfig{}
 		}
 		if o.DcosConfig.DcosWindowsBootstrapURL == "" {
 			o.DcosConfig.DcosWindowsBootstrapURL = DefaultDCOSSpecConfig.DCOSWindowsBootstrapDownloadURL
 		}
+	case api.OpenShift:
+		a.MasterProfile.Distro = api.RHEL
+		//TODO - what can we reuse from k8s?
 	}
 }
 
