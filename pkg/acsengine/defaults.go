@@ -460,6 +460,9 @@ func setOrchestratorDefaults(cs *api.ContainerService) {
 		if o.DcosConfig.DcosWindowsBootstrapURL == "" {
 			o.DcosConfig.DcosWindowsBootstrapURL = DefaultDCOSSpecConfig.DCOSWindowsBootstrapDownloadURL
 		}
+	case api.OpenShift:
+		a.MasterProfile.Distro = api.RHEL
+		//TODO - what can we reuse from k8s?
 	}
 }
 
