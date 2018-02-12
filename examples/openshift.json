@@ -1,0 +1,35 @@
+{
+  "apiVersion": "vlabs",
+  "properties": {
+    "orchestratorProfile": {
+      "orchestratorType": "OpenShift"
+    },
+    "masterProfile": {
+      "count": 1,
+      "dnsPrefix": "openshift-test",
+      "vmSize": "Standard_D2_v2"
+    },
+    "agentPoolProfiles": [
+      {
+        "name": "agentpool1",
+        "count": 3,
+        "vmSize": "Standard_D2_v2",
+        "availabilityProfile": "AvailabilitySet"
+      }
+    ],
+    "linuxProfile": {
+      "adminUsername": "azureuser",
+      "ssh": {
+        "publicKeys": [
+          {
+            "keyData": "badkey"
+          }
+        ]
+      }
+    },
+    "servicePrincipalProfile": {
+      "clientId": "clientId",
+      "secret": "secret"
+    }
+  }
+}
