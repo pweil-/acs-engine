@@ -289,7 +289,9 @@ func setOrchestratorDefaults(cs *api.ContainerService) {
 	o.OrchestratorVersion = common.GetValidPatchVersion(
 		o.OrchestratorType,
 		o.OrchestratorVersion)
-	if o.OrchestratorType == api.Kubernetes {
+
+	switch o.OrchestratorType {
+	case api.Kubernetes:
 		k8sVersion := o.OrchestratorVersion
 
 		if o.KubernetesConfig == nil {
@@ -451,8 +453,7 @@ func setOrchestratorDefaults(cs *api.ContainerService) {
 		setCloudControllerManagerConfig(cs)
 		// Configure apiserver
 		setAPIServerConfig(cs)
-
-	} else if o.OrchestratorType == api.DCOS {
+	case api.DCOS :
 		if o.DcosConfig == nil {
 			o.DcosConfig = &api.DcosConfig{}
 		}
