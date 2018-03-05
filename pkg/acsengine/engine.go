@@ -88,6 +88,13 @@ const (
 	swarmWinAgentResourcesVMAS    = "swarm/swarmwinagentresourcesvmas.t"
 	swarmWinAgentResourcesVMSS    = "swarm/swarmwinagentresourcesvmss.t"
 	windowsParams                 = "windowsparams.t"
+
+	//OpenShift templates
+	openshiftBaseFile  = "openshift/base.t"
+	openshiftParams    = "openshift/params.t"
+	openshiftResources = "openshift/resources.t"
+	openshiftVars      = "openshift/vars.t"
+	openshiftOutputs   = "openshift/outputs.t"
 )
 
 const (
@@ -102,6 +109,7 @@ var dcosTemplateFiles = []string{dcosBaseFile, dcosAgentResourcesVMAS, dcosAgent
 var kubernetesTemplateFiles = []string{kubernetesBaseFile, kubernetesAgentResourcesVMAS, kubernetesAgentVars, kubernetesMasterResources, kubernetesMasterVars, kubernetesParams, kubernetesWinAgentVars}
 var swarmTemplateFiles = []string{swarmBaseFile, swarmParams, swarmAgentResourcesVMAS, swarmAgentVars, swarmAgentResourcesVMSS, swarmAgentResourcesClassic, swarmBaseFile, swarmMasterResources, swarmMasterVars, swarmWinAgentResourcesVMAS, swarmWinAgentResourcesVMSS}
 var swarmModeTemplateFiles = []string{swarmBaseFile, swarmParams, swarmAgentResourcesVMAS, swarmAgentVars, swarmAgentResourcesVMSS, swarmAgentResourcesClassic, swarmBaseFile, swarmMasterResources, swarmMasterVars, swarmWinAgentResourcesVMAS, swarmWinAgentResourcesVMSS}
+var openshiftTemplateFiles = []string{openshiftBaseFile, openshiftParams, openshiftResources, openshiftVars, openshiftOutputs}
 
 /**
  The following parameters could be either a plain text, or referenced to a secret in a keyvault:
@@ -350,6 +358,9 @@ func (t *TemplateGenerator) prepareTemplateFiles(properties *api.Properties) ([]
 	case api.SwarmMode:
 		files = append(commonTemplateFiles, swarmModeTemplateFiles...)
 		baseFile = swarmBaseFile
+	case api.OpenShift:
+		files = append(commonTemplateFiles, openshiftTemplateFiles...)
+		baseFile = openshiftBaseFile
 	default:
 		return nil, "", t.Translator.Errorf("orchestrator '%s' is unsupported", properties.OrchestratorProfile.OrchestratorType)
 	}
@@ -401,13 +412,15 @@ func GetCloudSpecConfig(location string) AzureEnvironmentSpecConfig {
 // ValidateDistro checks if the requested orchestrator type is supported on the requested Linux distro.
 func ValidateDistro(cs *api.ContainerService) bool {
 	// Check Master distro
-	if cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.Distro == api.RHEL && cs.Properties.OrchestratorProfile.OrchestratorType != api.SwarmMode {
+	if cs.Properties.MasterProfile != nil && cs.Properties.MasterProfile.Distro == api.RHEL &&
+		(cs.Properties.OrchestratorProfile.OrchestratorType != api.SwarmMode && cs.Properties.OrchestratorProfile.OrchestratorType != api.OpenShift){
 		log.Fatalf("Orchestrator type %s not suported on RHEL Master", cs.Properties.OrchestratorProfile.OrchestratorType)
 		return false
 	}
 	// Check Agent distros
 	for _, agentProfile := range cs.Properties.AgentPoolProfiles {
-		if agentProfile.Distro == api.RHEL && cs.Properties.OrchestratorProfile.OrchestratorType != api.SwarmMode {
+		if agentProfile.Distro == api.RHEL &&
+			(cs.Properties.OrchestratorProfile.OrchestratorType != api.SwarmMode && cs.Properties.OrchestratorProfile.OrchestratorType != api.OpenShift) {
 			log.Fatalf("Orchestrator type %s not suported on RHEL Agent", cs.Properties.OrchestratorProfile.OrchestratorType)
 			return false
 		}
