@@ -188,9 +188,10 @@ var AllKubernetesWindowsSupportedVersions = map[string]bool{
 }
 
 const (
-	// OpenShiftVersion1Dot7Dot0 is the major.minor.patch string for the 1.7.0 version of OpenShift
+	// OpenShiftVersion3Dot7Dot0 is the major.minor.patch string for the 3.7.0 version of OpenShift
 	OpenShiftVersion3Dot7Dot0 string = "3.7.0"
-	OpenShiftDefaultVersion   string = OpenShiftVersion3Dot7Dot0
+	// OpenShiftDefaultVersion is the default major.minor.patch version for OpenShift
+	OpenShiftDefaultVersion string = OpenShiftVersion3Dot7Dot0
 )
 
 // GetAllSupportedOpenShiftVersions returns a slice of all supported OpenShift versions.

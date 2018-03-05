@@ -157,6 +157,7 @@ type OrchestratorProfile struct {
 	OrchestratorRelease string            `json:"orchestratorRelease,omitempty"`
 	OrchestratorVersion string            `json:"orchestratorVersion,omitempty"`
 	KubernetesConfig    *KubernetesConfig `json:"kubernetesConfig,omitempty"`
+	OpenShiftConfig     *OpenShiftConfig  `json:"openshiftConfig,omitempty"`
 	DcosConfig          *DcosConfig       `json:"dcosConfig,omitempty"`
 }
 
@@ -274,6 +275,13 @@ type KubernetesConfig struct {
 type DcosConfig struct {
 	DcosBootstrapURL        string `json:"dcosBootstrapURL,omitempty"`
 	DcosWindowsBootstrapURL string `json:"dcosWindowsBootstrapURL,omitempty"`
+}
+
+// OpenShiftConfig contains the Kubernetes config structure, containing
+// Kubernetes specific configuration
+type OpenShiftConfig struct {
+	// TODO: fill this out, remove nested KubernetesConfig
+	KubernetesConfig
 }
 
 // MasterProfile represents the definition of the master cluster
