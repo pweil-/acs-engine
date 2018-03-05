@@ -13,12 +13,12 @@
     },
 
     {{/* resources section contains ??? */}}
-    "resources": {
-        {{ template "openshift/resources.t".}}
-    },
+    "resources": [
+        {{ template "openshift/resources.t" .}}
+    ],
 
     {{/* outputs section contains ??? */}}
     "outputs": {
-        {{ template "openshift/outputs.t"  .}}
+        {{ template "openshift/outputs.t" .}}
     }
 }
