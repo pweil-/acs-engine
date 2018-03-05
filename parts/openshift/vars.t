@@ -1,5 +1,6 @@
-    "gituser" : "openshift",
-    "branch" : "master",
+    {{/* TODO: should be gituser: openshift, branch: master - changed to disable instance memory size checks */}}
+    "gituser" : "jim-minter",
+    "branch" : "azurefixes",
     "version" : "3.7",
     "baseTemplateUrl" : "[concat('https://raw.githubusercontent.com/',variables('gituser'),'/openshift-ansible-contrib/',variables('branch'),'/reference-architecture/azure-ansible/',variables('version'),'/')]",
     "baseVMachineTemplateUriInfranode" : "[concat(variables('baseTemplateUrl'), 'infranode.json')]",
