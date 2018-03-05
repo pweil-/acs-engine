@@ -132,6 +132,7 @@ func (o *OrchestratorProfile) Validate(isUpdate bool) error {
 				}
 			}
 		case OpenShift:
+			// TODO: add appropriate additional validatation logic
 			version := common.RationalizeReleaseAndVersion(
 				o.OrchestratorType,
 				o.OrchestratorRelease,
@@ -163,6 +164,10 @@ func (o *OrchestratorProfile) Validate(isUpdate bool) error {
 
 	if o.OrchestratorType != Kubernetes && o.KubernetesConfig != nil {
 		return fmt.Errorf("KubernetesConfig can be specified only when OrchestratorType is Kubernetes")
+	}
+
+	if o.OrchestratorType != OpenShift && o.OpenShiftConfig != nil {
+		return fmt.Errorf("OpenShiftConfig can be specified only when OrchestratorType is OpenShift")
 	}
 
 	if o.OrchestratorType != DCOS && o.DcosConfig != nil && (*o.DcosConfig != DcosConfig{}) {

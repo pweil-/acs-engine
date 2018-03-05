@@ -173,6 +173,7 @@ func (t *TemplateGenerator) verifyFiles() error {
 	allFiles := commonTemplateFiles
 	allFiles = append(allFiles, dcosTemplateFiles...)
 	allFiles = append(allFiles, kubernetesTemplateFiles...)
+	allFiles = append(allFiles, openshiftTemplateFiles...)
 	allFiles = append(allFiles, swarmTemplateFiles...)
 	for _, file := range allFiles {
 		if _, err := Asset(file); err != nil {
