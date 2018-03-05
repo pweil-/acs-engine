@@ -411,6 +411,7 @@ func (a *Properties) Validate(isUpdate bool) error {
 			case DCOS:
 			case Swarm:
 			case Kubernetes:
+			case OpenShift:
 			case SwarmMode:
 			default:
 				return fmt.Errorf("HA volumes are currently unsupported for Orchestrator %s", a.OrchestratorProfile.OrchestratorType)

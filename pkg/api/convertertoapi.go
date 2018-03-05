@@ -560,6 +560,16 @@ func convertVLabsOrchestratorProfile(vp *vlabs.Properties, api *OrchestratorProf
 	vlabscs := vp.OrchestratorProfile
 	api.OrchestratorType = vlabscs.OrchestratorType
 	switch api.OrchestratorType {
+	case OpenShift:
+		if vlabscs.OpenShiftConfig != nil {
+			api.OpenShiftConfig = &OpenShiftConfig{}
+			convertVLabsOpenShiftConfig(vlabscs.OpenShiftConfig, api.OpenShiftConfig)
+		}
+		setVlabsOpenShiftDefaults(vp, api)
+		api.OrchestratorVersion = common.RationalizeReleaseAndVersion(
+			vlabscs.OrchestratorType,
+			vlabscs.OrchestratorRelease,
+			vlabscs.OrchestratorVersion)
 	case Kubernetes:
 		if vlabscs.KubernetesConfig != nil {
 			api.KubernetesConfig = &KubernetesConfig{}
@@ -585,6 +595,29 @@ func convertVLabsOrchestratorProfile(vp *vlabs.Properties, api *OrchestratorProf
 func convertVLabsDcosConfig(vlabs *vlabs.DcosConfig, api *DcosConfig) {
 	api.DcosBootstrapURL = vlabs.DcosBootstrapURL
 	api.DcosWindowsBootstrapURL = vlabs.DcosWindowsBootstrapURL
+}
+
+func convertVLabsOpenShiftConfig(vlabs *vlabs.OpenShiftConfig, api *OpenShiftConfig) {
+	api.AdminUsername = vlabs.AdminUsername
+	api.AdminPassword = vlabs.AdminPassword
+	api.SSHKeyData = vlabs.SSHKeyData
+	api.WildcardZone = vlabs.WildcardZone
+	api.NumberOfNodes = vlabs.NumberOfNodes
+	api.Image = vlabs.Image
+	api.MasterVMSize = vlabs.MasterVMSize
+	api.InfraNodeVMSize = vlabs.InfraNodeVMSize
+	api.NodeVMSize = vlabs.NodeVMSize
+	api.RHSMUsernamePasswordOrActivationKey = vlabs.RHSMUsernamePasswordOrActivationKey
+	api.RHNUserName = vlabs.RHNUserName
+	api.RHNPassword = vlabs.RHNPassword
+	api.SubscriptionPoolID = vlabs.SubscriptionPoolID
+	api.SSHPrivateData = vlabs.SSHPrivateData
+	api.AADClientID = vlabs.AADClientID
+	api.AADClientSecret = vlabs.AADClientSecret
+	api.OpenShiftSDN = vlabs.OpenShiftSDN
+	api.Metrics = vlabs.Metrics
+	api.Logging = vlabs.Logging
+	api.OpsLogging = vlabs.OpsLogging
 }
 
 func convertVLabsKubernetesConfig(vlabs *vlabs.KubernetesConfig, api *KubernetesConfig) {
@@ -625,6 +658,41 @@ func convertVLabsKubernetesConfig(vlabs *vlabs.KubernetesConfig, api *Kubernetes
 	convertControllerManagerConfigToAPI(vlabs, api)
 	convertCloudControllerManagerConfigToAPI(vlabs, api)
 	convertAPIServerConfigToAPI(vlabs, api)
+}
+
+func setVlabsOpenShiftDefaults(vp *vlabs.Properties, api *OrchestratorProfile) {
+	if api.OpenShiftConfig == nil {
+		api.OpenShiftConfig = &OpenShiftConfig{}
+	}
+	if api.OpenShiftConfig.NumberOfNodes == 0 {
+		api.OpenShiftConfig.NumberOfNodes = 3
+	}
+	if api.OpenShiftConfig.Image == "" {
+		api.OpenShiftConfig.Image = "rhel"
+	}
+	if api.OpenShiftConfig.MasterVMSize == "" {
+		api.OpenShiftConfig.MasterVMSize = "Standard_DS2_v2" // refarch default is Standard_DS4_v2; that's very large
+	}
+	if api.OpenShiftConfig.InfraNodeVMSize == "" {
+		api.OpenShiftConfig.InfraNodeVMSize = "Standard_DS2_v2" // refarch default is Standard_DS4_v2; that's very large
+	}
+	if api.OpenShiftConfig.NodeVMSize == "" {
+		api.OpenShiftConfig.NodeVMSize = "Standard_DS2_v2" // refarch default is Standard_DS4_v2; that's very large
+	}
+	if api.OpenShiftConfig.RHSMUsernamePasswordOrActivationKey == "" {
+		api.OpenShiftConfig.RHSMUsernamePasswordOrActivationKey = "usernamepassword"
+	}
+	if api.OpenShiftConfig.OpenShiftSDN == "" {
+		api.OpenShiftConfig.OpenShiftSDN = "redhat/openshift-ovs-multitenant"
+	}
+	t := true
+
+	if api.OpenShiftConfig.Metrics == nil {
+		api.OpenShiftConfig.Metrics = &t
+	}
+	if api.OpenShiftConfig.Logging == nil {
+		api.OpenShiftConfig.Logging = &t
+	}
 }
 
 func setVlabsKubernetesDefaults(vp *vlabs.Properties, api *OrchestratorProfile) {
