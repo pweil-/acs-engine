@@ -701,6 +701,29 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 		}
 	}
 
+	if properties.OrchestratorProfile.OrchestratorType == api.OpenShift {
+		addValue(parametersMap, "adminUsername", properties.OrchestratorProfile.OpenShiftConfig.AdminUsername)
+		addValue(parametersMap, "adminPassword", properties.OrchestratorProfile.OpenShiftConfig.AdminPassword)
+		addValue(parametersMap, "sshKeyData", properties.OrchestratorProfile.OpenShiftConfig.SSHKeyData)
+		addValue(parametersMap, "WildcardZone", properties.OrchestratorProfile.OpenShiftConfig.WildcardZone)
+		addValue(parametersMap, "numberOfNodes", properties.OrchestratorProfile.OpenShiftConfig.NumberOfNodes)
+		addValue(parametersMap, "image", properties.OrchestratorProfile.OpenShiftConfig.Image)
+		addValue(parametersMap, "masterVMSize", properties.OrchestratorProfile.OpenShiftConfig.MasterVMSize)
+		addValue(parametersMap, "infranodeVMSize", properties.OrchestratorProfile.OpenShiftConfig.InfraNodeVMSize)
+		addValue(parametersMap, "nodeVMSize", properties.OrchestratorProfile.OpenShiftConfig.NodeVMSize)
+		addValue(parametersMap, "rhsmUsernamePasswordOrActivationKey", properties.OrchestratorProfile.OpenShiftConfig.RHSMUsernamePasswordOrActivationKey)
+		addValue(parametersMap, "RHNUserName", properties.OrchestratorProfile.OpenShiftConfig.RHNUserName)
+		addValue(parametersMap, "RHNPassword", properties.OrchestratorProfile.OpenShiftConfig.RHNPassword)
+		addValue(parametersMap, "SubscriptionPoolId", properties.OrchestratorProfile.OpenShiftConfig.SubscriptionPoolID)
+		addValue(parametersMap, "sshPrivateData", properties.OrchestratorProfile.OpenShiftConfig.SSHPrivateData)
+		addValue(parametersMap, "aadClientId", properties.OrchestratorProfile.OpenShiftConfig.AADClientID)
+		addValue(parametersMap, "aadClientSecret", properties.OrchestratorProfile.OpenShiftConfig.AADClientSecret)
+		addValue(parametersMap, "OpenShiftSDN", properties.OrchestratorProfile.OpenShiftConfig.OpenShiftSDN)
+		addValue(parametersMap, "metrics", properties.OrchestratorProfile.OpenShiftConfig.Metrics)
+		addValue(parametersMap, "logging", properties.OrchestratorProfile.OpenShiftConfig.Logging)
+		addValue(parametersMap, "opslogging", properties.OrchestratorProfile.OpenShiftConfig.OpsLogging)
+	}
+
 	if strings.HasPrefix(properties.OrchestratorProfile.OrchestratorType, api.DCOS) {
 		dcosBootstrapURL := cloudSpecConfig.DCOSSpecConfig.DCOS188BootstrapDownloadURL
 		dcosWindowsBootstrapURL := cloudSpecConfig.DCOSSpecConfig.DCOSWindowsBootstrapDownloadURL
@@ -786,6 +809,14 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 				extension.ExtensionParametersKeyVaultRef.SecretVersion)
 		} else {
 			addValue(parametersMap, fmt.Sprintf("%sParameters", extension.Name), extension.ExtensionParameters)
+		}
+	}
+
+	// TODO: HACK: when we use the same parameters, this will no longer be
+	// necessary
+	if properties.OrchestratorProfile.OrchestratorType == api.OpenShift {
+		for _, key := range []string{"agentCount", "agentSubnet", "agentVMSize", "agentosImageOffer", "agentosImagePublisher", "agentosImageSKU", "agentosImageVersion", "firstConsecutiveStaticIP", "fqdnEndpointSuffix", "linuxAdminUsername", "location", "masterEndpointDNSNamePrefix", "masterSubnet", "osImageOffer", "osImagePublisher", "osImageSKU", "osImageVersion", "sshRSAPublicKey", "targetEnvironment"} {
+			delete(parametersMap, key)
 		}
 	}
 
