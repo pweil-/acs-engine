@@ -2,16 +2,28 @@
   "apiVersion": "vlabs",
   "properties": {
     "orchestratorProfile": {
-      "orchestratorType": "OpenShift"
+      "orchestratorType": "OpenShift",
+      "openShiftConfig": {
+        "adminUsername": "",
+        "adminPassword": "",
+        "sshKeyData": "",
+        "WildcardZone": "",
+        "rhnUsername": "",
+        "rhnPassword": "",
+        "SubscriptionPoolId": "",
+        "sshPrivateData": "",
+        "aadClientId": "",
+        "aadClientSecret": ""
+      }
     },
     "masterProfile": {
       "count": 1,
-      "dnsPrefix": "openshift-test",
+      "dnsPrefix": "",
       "vmSize": "Standard_D2_v2"
     },
     "agentPoolProfiles": [
       {
-        "name": "agentpool1",
+        "name": "agent",
         "count": 3,
         "vmSize": "Standard_D2_v2",
         "availabilityProfile": "AvailabilitySet"
@@ -22,14 +34,14 @@
       "ssh": {
         "publicKeys": [
           {
-            "keyData": "badkey"
+            "keyData": ""
           }
         ]
       }
     },
     "servicePrincipalProfile": {
-      "clientId": "clientId",
-      "secret": "secret"
+      "clientId": "",
+      "secret": ""
     }
   }
 }

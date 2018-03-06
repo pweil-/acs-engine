@@ -161,6 +161,8 @@ func ConvertOrchestratorVersionProfileToVLabs(api *OrchestratorVersionProfile) *
 		vlabsProfile.OrchestratorType = vlabs.Swarm
 	case SwarmMode:
 		vlabsProfile.OrchestratorType = vlabs.SwarmMode
+	case OpenShift:
+		vlabsProfile.OrchestratorType = vlabs.OpenShift
 	}
 	vlabsProfile.OrchestratorVersion = api.OrchestratorVersion
 	vlabsProfile.Default = api.Default
