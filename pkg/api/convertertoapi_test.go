@@ -1,6 +1,7 @@
 package api
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/Azure/acs-engine/pkg/api/common"
@@ -150,6 +151,81 @@ func TestKubernetesVlabsDefaults(t *testing.T) {
 	}
 	if ap.OrchestratorProfile.KubernetesConfig.NetworkPolicy != vlabs.DefaultNetworkPolicyWindows {
 		t.Fatalf("vlabs defaults not applied, expected NetworkPolicy: %s, instead got: %s", vlabs.DefaultNetworkPolicyWindows, ap.OrchestratorProfile.KubernetesConfig.NetworkPolicy)
+	}
+}
+
+func TestConvertVLabsOrchestratorProfile(t *testing.T) {
+	truePtr := true
+	tests := map[string]struct {
+		props  *vlabs.Properties
+		expect *OrchestratorProfile
+	}{
+		"nilOpenShiftConfig": {
+			props: &vlabs.Properties{
+				OrchestratorProfile: &vlabs.OrchestratorProfile{
+					OrchestratorType: OpenShift,
+				},
+			},
+			expect: &OrchestratorProfile{
+				OrchestratorType:    OpenShift,
+				OrchestratorVersion: common.OpenShiftDefaultVersion,
+				OpenShiftConfig: &OpenShiftConfig{
+					NumberOfNodes:                       3,
+					Image:                               "rhel",
+					MasterVMSize:                        "Standard_DS2_v2",
+					InfraNodeVMSize:                     "Standard_DS2_v2",
+					NodeVMSize:                          "Standard_DS2_v2",
+					RHSMUsernamePasswordOrActivationKey: "usernamepassword",
+					OpenShiftSDN:                        "redhat/openshift-ovs-multitenant",
+					// TODO these should not be used
+					Metrics: &truePtr,
+					Logging: &truePtr,
+				},
+			},
+		},
+		"setOpenShiftConfig": {
+			props: &vlabs.Properties{
+				OrchestratorProfile: &vlabs.OrchestratorProfile{
+					OrchestratorType: OpenShift,
+					OpenShiftConfig: &vlabs.OpenShiftConfig{
+						NumberOfNodes:                       1,
+						Image:                               "abc",
+						MasterVMSize:                        "def",
+						InfraNodeVMSize:                     "ghi",
+						NodeVMSize:                          "jkl",
+						RHSMUsernamePasswordOrActivationKey: "mno",
+						OpenShiftSDN:                        "pqr",
+						// TODO these should not be used
+						Metrics: &truePtr,
+						Logging: &truePtr,
+					},
+				},
+			},
+			expect: &OrchestratorProfile{
+				OrchestratorType:    OpenShift,
+				OrchestratorVersion: common.OpenShiftDefaultVersion,
+				OpenShiftConfig: &OpenShiftConfig{
+					NumberOfNodes:                       1,
+					Image:                               "abc",
+					MasterVMSize:                        "def",
+					InfraNodeVMSize:                     "ghi",
+					NodeVMSize:                          "jkl",
+					RHSMUsernamePasswordOrActivationKey: "mno",
+					OpenShiftSDN:                        "pqr",
+					// TODO these should not be used
+					Metrics: &truePtr,
+					Logging: &truePtr,
+				},
+			},
+		},
+	}
+
+	for name, test := range tests {
+		actual := &OrchestratorProfile{}
+		convertVLabsOrchestratorProfile(test.props, actual)
+		if !reflect.DeepEqual(test.expect, actual) {
+			t.Errorf("error on test %s.  Expected: %#v but got %#v", name, test.expect, actual)
+		}
 	}
 }
 

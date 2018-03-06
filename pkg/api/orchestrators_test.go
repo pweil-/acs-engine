@@ -143,3 +143,35 @@ func TestKubernetesInfo(t *testing.T) {
 	}
 
 }
+
+func TestOpenshiftInfo(t *testing.T) {
+	RegisterTestingT(t)
+
+	invalid := []string{
+		"invalid number",
+		"invalid.number",
+		"a4.b7.c3",
+		"31.29.",
+		".17.02",
+		"43.156.89.",
+		"1.2.a"}
+
+	for _, v := range invalid {
+		csOrch := &OrchestratorProfile{
+			OrchestratorType:    OpenShift,
+			OrchestratorVersion: v,
+		}
+
+		_, e := openShiftInfo(csOrch)
+		Expect(e).NotTo(BeNil())
+	}
+
+	// test good value
+	csOrch := &OrchestratorProfile{
+		OrchestratorType:    OpenShift,
+		OrchestratorVersion: common.OpenShiftDefaultVersion,
+	}
+
+	_, e := openShiftInfo(csOrch)
+	Expect(e).To(BeNil())
+}
