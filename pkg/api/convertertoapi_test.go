@@ -1,8 +1,9 @@
 package api
 
 import (
-	"reflect"
 	"testing"
+
+	"k8s.io/apimachinery/pkg/api/equality"
 
 	"github.com/Azure/acs-engine/pkg/api/common"
 	"github.com/Azure/acs-engine/pkg/api/v20170701"
@@ -156,6 +157,7 @@ func TestKubernetesVlabsDefaults(t *testing.T) {
 
 func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 	truePtr := true
+	falsePtr := false
 	tests := map[string]struct {
 		props  *vlabs.Properties
 		expect *OrchestratorProfile
@@ -170,7 +172,7 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 				OrchestratorType:    OpenShift,
 				OrchestratorVersion: common.OpenShiftDefaultVersion,
 				OpenShiftConfig: &OpenShiftConfig{
-					NumberOfNodes:                       3,
+					NumberOfNodes:                       1,
 					Image:                               "rhel",
 					MasterVMSize:                        "Standard_DS2_v2",
 					InfraNodeVMSize:                     "Standard_DS2_v2",
@@ -178,8 +180,9 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 					RHSMUsernamePasswordOrActivationKey: "usernamepassword",
 					OpenShiftSDN:                        "redhat/openshift-ovs-multitenant",
 					// TODO these should not be used
-					Metrics: &truePtr,
-					Logging: &truePtr,
+					Metrics:    &truePtr,
+					Logging:    &truePtr,
+					OpsLogging: &falsePtr,
 				},
 			},
 		},
@@ -188,7 +191,7 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 				OrchestratorProfile: &vlabs.OrchestratorProfile{
 					OrchestratorType: OpenShift,
 					OpenShiftConfig: &vlabs.OpenShiftConfig{
-						NumberOfNodes:                       1,
+						NumberOfNodes:                       2,
 						Image:                               "abc",
 						MasterVMSize:                        "def",
 						InfraNodeVMSize:                     "ghi",
@@ -196,8 +199,9 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 						RHSMUsernamePasswordOrActivationKey: "mno",
 						OpenShiftSDN:                        "pqr",
 						// TODO these should not be used
-						Metrics: &truePtr,
-						Logging: &truePtr,
+						Metrics:    &falsePtr,
+						Logging:    &falsePtr,
+						OpsLogging: &truePtr,
 					},
 				},
 			},
@@ -205,7 +209,7 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 				OrchestratorType:    OpenShift,
 				OrchestratorVersion: common.OpenShiftDefaultVersion,
 				OpenShiftConfig: &OpenShiftConfig{
-					NumberOfNodes:                       1,
+					NumberOfNodes:                       2,
 					Image:                               "abc",
 					MasterVMSize:                        "def",
 					InfraNodeVMSize:                     "ghi",
@@ -213,18 +217,21 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 					RHSMUsernamePasswordOrActivationKey: "mno",
 					OpenShiftSDN:                        "pqr",
 					// TODO these should not be used
-					Metrics: &truePtr,
-					Logging: &truePtr,
+					Metrics:    &falsePtr,
+					Logging:    &falsePtr,
+					OpsLogging: &truePtr,
 				},
 			},
 		},
 	}
 
 	for name, test := range tests {
+		t.Logf("running scenario %q", name)
 		actual := &OrchestratorProfile{}
 		convertVLabsOrchestratorProfile(test.props, actual)
-		if !reflect.DeepEqual(test.expect, actual) {
-			t.Errorf("error on test %s.  Expected: %#v but got %#v", name, test.expect, actual)
+		if !equality.Semantic.DeepEqual(test.expect, actual) {
+			t.Errorf("Expected:\n%#v\nGot:\n%#v", test.expect, actual)
+			t.Errorf("Expected Openshift config:\n%#v\nGot config:\n%#v", test.expect.OpenShiftConfig, actual.OpenShiftConfig)
 		}
 	}
 }
