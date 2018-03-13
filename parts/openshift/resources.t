@@ -1,40 +1,4 @@
     {
-      "type" : "Microsoft.Storage/storageAccounts",
-      "name" : "[variables('infranodeStorageName')]",
-      "apiVersion" : "[variables('apiVersion')]",
-      "location" : "[variables('location')]",
-      "tags" : {
-        "displayName" : "StorageAccount"
-      },
-      "properties" : {
-        "accountType" : "[variables('vmSizesMap')[parameters('infranodeVMSize')].storageAccountType]"
-      }
-    },
-    {
-      "type" : "Microsoft.Storage/storageAccounts",
-      "name" : "[variables('nodeStorageName')]",
-      "apiVersion" : "[variables('apiVersion')]",
-      "location" : "[variables('location')]",
-      "tags" : {
-        "displayName" : "StorageAccount"
-      },
-      "properties" : {
-        "accountType" : "[variables('vmSizesMap')[parameters('nodeVmSize')].storageAccountType]"
-      }
-    },
-    {
-      "type" : "Microsoft.Storage/storageAccounts",
-      "name" : "[variables('masterStorageName')]",
-      "apiVersion" : "[variables('apiVersion')]",
-      "location" : "[variables('location')]",
-      "tags" : {
-        "displayName" : "StorageAccount"
-      },
-      "properties" : {
-        "accountType" : "[variables('vmSizesMap')[parameters('masterVMSize')].storageAccountType]"
-      }
-    },
-    {
       "apiVersion" : "[variables('apiVersion')]",
       "type" : "Microsoft.Network/virtualNetworks",
       "name" : "[variables('virtualNetworkName')]",
@@ -79,8 +43,7 @@
         "count" : "[parameters('numberOfNodes')]"
       },
       "dependsOn" : [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('nodeStorageName'))]"
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
       ],
       "properties" : {
         "mode" : "Incremental",
@@ -91,9 +54,6 @@
         "parameters" : {
           "vmName" : {
             "value" : "[concat('node', padLeft(add(copyindex(), 1), 2, '0'))]"
-          },
-          "sa" : {
-            "value" : "[variables('nodeStorageName')]"
           },
           "subnetRef" : {
             "value" : "[variables('nodeSubnetRef')]"
@@ -128,7 +88,6 @@
       "apiVersion" : "2015-01-01",
       "dependsOn" : [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('masterStorageName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('registryStorageName'))]"
       ],
       "properties" : {
@@ -143,9 +102,6 @@
           },
           "dnsName" : {
             "value" : "[concat(resourceGroup().name,'b')]"
-          },
-          "sa" : {
-            "value" : "[variables('masterStorageName')]"
           },
           "subnetRef" : {
             "value" : "[variables('masterSubnetRef')]"
@@ -236,8 +192,7 @@
       "type" : "Microsoft.Resources/deployments",
       "apiVersion" : "2015-01-01",
       "dependsOn" : [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('masterStorageName'))]"
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
       ],
       "properties" : {
         "mode" : "Incremental",
@@ -251,9 +206,6 @@
           },
           "dnsName" : {
             "value" : "[concat(resourceGroup().name,'m1')]"
-          },
-          "sa" : {
-            "value" : "[variables('masterStorageName')]"
           },
           "subnetRef" : {
             "value" : "[variables('masterSubnetRef')]"
@@ -293,8 +245,7 @@
       "type" : "Microsoft.Resources/deployments",
       "apiVersion" : "2015-01-01",
       "dependsOn" : [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('infranodeStorageName'))]"
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
       ],
       "properties" : {
         "mode" : "Incremental",
@@ -305,9 +256,6 @@
         "parameters" : {
           "vmName" : {
             "value" : "infranode1"
-          },
-          "sa" : {
-            "value" : "[variables('infranodeStorageName')]"
           },
           "subnetRef" : {
             "value" : "[variables('infranodeSubnetRef')]"
