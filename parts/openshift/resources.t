@@ -383,14 +383,28 @@
       "name" : "masteravailabilityset",
       "location" : "[variables('location')]",
       "apiVersion" : "[variables('apiVersionCompute')]",
-      "properties" : {}
+      "properties": {
+        "platformUpdateDomainCount": "[variables('updateDomains')]",
+        "platformFaultDomainCount": "[variables('faultDomains')]",
+        "virtualMachines": []
+      },
+      "sku": {
+        "name": "Aligned"
+      }
     },
     {
       "type" : "Microsoft.Compute/availabilitySets",
       "name" : "infranodeavailabilityset",
       "location" : "[variables('location')]",
       "apiVersion" : "[variables('apiVersionCompute')]",
-      "properties" : {}
+      "properties": {
+        "platformUpdateDomainCount": "[variables('updateDomains')]",
+        "platformFaultDomainCount": "[variables('faultDomains')]",
+        "virtualMachines": []
+      },
+      "sku": {
+        "name": "Aligned"
+      }
     },
     {
       "type" : "Microsoft.Network/publicIPAddresses",
@@ -412,7 +426,14 @@
       "name" : "nodeavailabilityset",
       "location" : "[variables('location')]",
       "apiVersion" : "[variables('apiVersionCompute')]",
-      "properties" : {}
+      "properties": {
+        "platformUpdateDomainCount": "[variables('updateDomains')]",
+        "platformFaultDomainCount": "[variables('faultDomains')]",
+        "virtualMachines": []
+      },
+      "sku": {
+        "name": "Aligned"
+      }
     },
     {
       "type" : "Microsoft.Network/publicIPAddresses",

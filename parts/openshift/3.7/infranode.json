@@ -50,6 +50,7 @@
   },
   "variables" : {
     "apiVersion" : "2015-06-15",
+    "apiVersionVM" : "2017-03-30",
     "sshKeyPath" : "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]"
   },
   "resources" : [
@@ -87,7 +88,7 @@
       }
     },
     {
-      "apiVersion" : "[variables('apiVersion')]",
+      "apiVersion" : "[variables('apiVersionVM')]",
       "type" : "Microsoft.Compute/virtualMachines",
       "name" : "[parameters('vmName')]",
       "location" : "[resourceGroup().location]",
@@ -121,36 +122,11 @@
             "id": "[parameters('customImageURI')]"
           },
           "osDisk" : {
-            "name" : "osdisk",
-            "vhd" : {
-              "uri" : "[concat('http://', parameters('sa'), '.blob.core.windows.net/openshiftvmachines/', parameters('vmName'), '.vhd')]"
-            },
-            "caching" : "ReadWrite",
-            "createOption" : "FromImage",
-            "diskSizeGB" : "128"
-          },
-          "dataDisks" : [
-            {
-              "caching" : "None",
-              "createOption" : "Empty",
-              "diskSizeGB" : "128",
-              "lun" : 0,
-              "name" : "datadisk1",
-              "vhd" : {
-                "uri" : "[concat('http://', parameters('sa'), '.blob.core.windows.net/openshiftvmachines/', parameters('vmName'), '_datadisk1.vhd')]"
-              }
-            },
-            {
-              "caching" : "None",
-              "createOption" : "Empty",
-              "diskSizeGB" : "128",
-              "lun" : 1,
-              "name" : "datadisk2",
-              "vhd" : {
-                "uri" : "[concat('http://', parameters('sa'), '.blob.core.windows.net/openshiftvmachines/', parameters('vmName'), '_datadisk2.vhd')]"
-              }
+            "createOption" : "fromImage",
+            "managedDisk": {
+              "storageAccountType": "Standard_LRS"
             }
-          ]
+          }
         },
         "networkProfile" : {
           "networkInterfaces" : [
