@@ -71,22 +71,6 @@
       }
     },
     {
-      "type": "Microsoft.Compute/images",
-      "apiVersion": "2016-04-30-preview",
-      "name": "customImage",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "storageProfile": {
-          "osDisk": {
-            "osType": "Linux",
-            "osState": "Generalized",
-            "blobUri": "[parameters('customImageURI')]",
-            "storageAccountType": "Standard_LRS"
-          }
-        }
-      }
-    },
-    {
       "name" : "[concat('nodeSet', copyindex())]",
       "type" : "Microsoft.Resources/deployments",
       "apiVersion" : "2015-01-01",
@@ -96,8 +80,7 @@
       },
       "dependsOn" : [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('nodeStorageName'))]",
-        "[concat('Microsoft.Compute/images/', 'customImage')]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('nodeStorageName'))]"
       ],
       "properties" : {
         "mode" : "Incremental",
@@ -146,8 +129,7 @@
       "dependsOn" : [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('masterStorageName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('registryStorageName'))]",
-        "[concat('Microsoft.Compute/images/', 'customImage')]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('registryStorageName'))]"
       ],
       "properties" : {
         "mode" : "Incremental",
@@ -255,8 +237,7 @@
       "apiVersion" : "2015-01-01",
       "dependsOn" : [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('masterStorageName'))]",
-        "[concat('Microsoft.Compute/images/', 'customImage')]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('masterStorageName'))]"
       ],
       "properties" : {
         "mode" : "Incremental",
@@ -313,8 +294,7 @@
       "apiVersion" : "2015-01-01",
       "dependsOn" : [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('infranodeStorageName'))]",
-        "[concat('Microsoft.Compute/images/', 'customImage')]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('infranodeStorageName'))]"
       ],
       "properties" : {
         "mode" : "Incremental",
