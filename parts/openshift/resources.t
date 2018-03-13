@@ -71,6 +71,22 @@
       }
     },
     {
+      "type": "Microsoft.Compute/images",
+      "apiVersion": "2016-04-30-preview",
+      "name": "customImage",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Linux",
+            "osState": "Generalized",
+            "blobUri": "[parameters('customImageURI')]",
+            "storageAccountType": "Standard_LRS"
+          }
+        }
+      }
+    },
+    {
       "name" : "[concat('nodeSet', copyindex())]",
       "type" : "Microsoft.Resources/deployments",
       "apiVersion" : "2015-01-01",
@@ -80,7 +96,8 @@
       },
       "dependsOn" : [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('nodeStorageName'))]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('nodeStorageName'))]",
+        "[concat('Microsoft.Compute/images/', 'customImage')]"
       ],
       "properties" : {
         "mode" : "Incremental",
@@ -110,6 +127,9 @@
           "baseTemplateUrl" : {
             "value" : "[variables('baseTemplateUrl')]"
           },
+          "customImageURI": {
+            "value" : "[parameters('customImageURI')]"
+          },
           "imageReference" : {
             "value" : "[variables(parameters('image'))]"
           },
@@ -126,7 +146,8 @@
       "dependsOn" : [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('masterStorageName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('registryStorageName'))]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('registryStorageName'))]",
+        "[concat('Microsoft.Compute/images/', 'customImage')]"
       ],
       "properties" : {
         "mode" : "Incremental",
@@ -167,6 +188,9 @@
           },
           "routerExtIP" : {
             "value" : "[reference(parameters('WildcardZone')).ipAddress]"
+          },
+          "customImageURI": {
+            "value" : "[parameters('customImageURI')]"
           },
           "imageReference" : {
             "value" : "[variables(parameters('image'))]"
@@ -231,7 +255,8 @@
       "apiVersion" : "2015-01-01",
       "dependsOn" : [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('masterStorageName'))]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('masterStorageName'))]",
+        "[concat('Microsoft.Compute/images/', 'customImage')]"
       ],
       "properties" : {
         "mode" : "Incremental",
@@ -264,6 +289,9 @@
           "baseTemplateUrl" : {
             "value" : "[variables('baseTemplateUrl')]"
           },
+          "customImageURI": {
+            "value" : "[parameters('customImageURI')]"
+          },
           "imageReference" : {
             "value" : "[variables(parameters('image'))]"
           },
@@ -285,7 +313,8 @@
       "apiVersion" : "2015-01-01",
       "dependsOn" : [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('infranodeStorageName'))]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('infranodeStorageName'))]",
+        "[concat('Microsoft.Compute/images/', 'customImage')]"
       ],
       "properties" : {
         "mode" : "Incremental",
@@ -314,6 +343,9 @@
           },
           "baseTemplateUrl" : {
             "value" : "[variables('baseTemplateUrl')]"
+          },
+          "customImageURI": {
+            "value" : "[parameters('customImageURI')]"
           },
           "imageReference" : {
             "value" : "[variables(parameters('image'))]"

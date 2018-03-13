@@ -38,6 +38,12 @@
     "routerExtIP" : {
       "type" : "string"
     },
+    "customImageURI" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "custom image that should be used to create the virtual machine"
+      }
+    },
     "imageReference" : {
       "type" : "object",
       "metadata" : {
@@ -168,7 +174,9 @@
           }
         },
         "storageProfile" : {
-          "imageReference" : "[parameters('imageReference')]",
+          "imageReference" : {
+            "id": "[parameters('customImageURI')]"
+          },
           "osDisk" : {
             "name" : "osdisk",
             "vhd" : {

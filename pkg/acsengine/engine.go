@@ -715,6 +715,7 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 		addValue(parametersMap, "sshKeyData", properties.OrchestratorProfile.OpenShiftConfig.SSHKeyData)
 		addValue(parametersMap, "WildcardZone", properties.OrchestratorProfile.OpenShiftConfig.WildcardZone)
 		addValue(parametersMap, "numberOfNodes", properties.OrchestratorProfile.OpenShiftConfig.NumberOfNodes)
+		addValue(parametersMap, "customImageURI", properties.OrchestratorProfile.OpenShiftConfig.CustomImageURI)
 		addValue(parametersMap, "image", properties.OrchestratorProfile.OpenShiftConfig.Image)
 		addValue(parametersMap, "masterVMSize", properties.OrchestratorProfile.OpenShiftConfig.MasterVMSize)
 		addValue(parametersMap, "infranodeVMSize", properties.OrchestratorProfile.OpenShiftConfig.InfraNodeVMSize)

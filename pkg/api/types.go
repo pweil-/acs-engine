@@ -281,6 +281,7 @@ type OpenShiftConfig struct {
 	SSHKeyData                          string `json:"sshKeyData,omitempty"`
 	WildcardZone                        string `json:"WildcardZone,omitempty"`
 	NumberOfNodes                       int    `json:"numberOfNodes,omitempty"`
+	CustomImageURI                      string `json:"customImageURI,omitempty"`
 	Image                               string `json:"image,omitempty"`
 	MasterVMSize                        string `json:"masterVMSize,omitempty"`
 	InfraNodeVMSize                     string `json:"infranodeVMSize,omitempty"`

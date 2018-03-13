@@ -603,6 +603,7 @@ func convertVLabsOpenShiftConfig(vlabs *vlabs.OpenShiftConfig, api *OpenShiftCon
 	api.SSHKeyData = vlabs.SSHKeyData
 	api.WildcardZone = vlabs.WildcardZone
 	api.NumberOfNodes = vlabs.NumberOfNodes
+	api.CustomImageURI = vlabs.CustomImageURI
 	api.Image = vlabs.Image
 	api.MasterVMSize = vlabs.MasterVMSize
 	api.InfraNodeVMSize = vlabs.InfraNodeVMSize
