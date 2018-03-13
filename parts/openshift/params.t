@@ -33,6 +33,12 @@
         "description" : "Number of OpenShift Nodes to deploy (max 30)"
       }
     },
+    "customImageURI": {
+      "type": "string",
+      "metadata": {
+        "description": "The source of the generalized blob containing the custom image"
+      }
+    },
     "image" : {
       "type" : "string",
       "allowedValues" : [

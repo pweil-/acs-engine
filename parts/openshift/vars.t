@@ -14,9 +14,6 @@
     "nodesubnetPrefix" : "10.0.1.0/24",
     "mastersubnetName" : "masterSubnet",
     "mastersubnetPrefix" : "10.0.0.0/24",
-    "infranodeStorageName" : "[concat('sainf', resourceGroup().name)]",
-    "nodeStorageName" : "[concat('sanod', resourceGroup().name)]",
-    "masterStorageName" : "[concat('samas', resourceGroup().name)]",
     "vhdStorageType" : "Premium_LRS",
     "vnetId" : "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "infranodeSubnetRef" : "[concat(variables('vnetId'), '/subnets/', variables('infranodesubnetName'))]",
@@ -255,8 +252,10 @@
     "subscriptionId" : "[subscription().subscriptionId]",
     "StorageAccountLoggingMetricsVolumesVolumeType" : "Premium_LRS",
     "apiVersion" : "2015-06-15",
-    "apiVersionCompute" : "2015-06-15",
+    "apiVersionCompute" : "2017-03-30",
     "apiVersionNetwork" : "2016-03-30",
     "tmApiVersion" : "2015-11-01",
     "apiVersionStorage" : "2015-06-15",
-    "apiVersionLinkTemplate" : "2015-01-01"
+    "apiVersionLinkTemplate" : "2015-01-01",
+    "updateDomains": "5",
+    "faultDomains": "2"
