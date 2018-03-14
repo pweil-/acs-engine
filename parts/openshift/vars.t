@@ -1,4 +1,4 @@
-    "gituser" : "kargakis",
+    "gituser" : "pweil-",
     "branch" : "master",
     "version" : "3.7",
     "baseTemplateUrl" : "[concat('https://raw.githubusercontent.com/',variables('gituser'),'/acs-engine/',variables('branch'),'/parts/openshift/',variables('version'),'/')]",
