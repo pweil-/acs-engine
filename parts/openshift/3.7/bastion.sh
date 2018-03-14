@@ -63,16 +63,6 @@ ps -ef | grep bastion.sh > cmdline.out
 systemctl enable dnsmasq.service
 systemctl start dnsmasq.service
 
-echo "Resize Root FS"
-rootdev=`findmnt --target / -o SOURCE -n`
-rootdrivename=`lsblk -no pkname $rootdev`
-rootdrive="/dev/"$rootdrivename
-majorminor=`lsblk  $rootdev -o MAJ:MIN | tail -1`
-part_number=${majorminor#*:}
-yum install -y cloud-utils-growpart.noarch
-growpart $rootdrive $part_number -u on
-xfs_growfs $rootdev
-
 mkdir -p /home/$AUSERNAME/.azuresettings
 echo $REGISTRYSTORAGENAME > /home/$AUSERNAME/.azuresettings/registry_storage_name
 echo $REGISTRYKEY > /home/$AUSERNAME/.azuresettings/registry_key
