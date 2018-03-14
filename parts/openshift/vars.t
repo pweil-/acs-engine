@@ -1,5 +1,5 @@
     "gituser" : "pweil-",
-    "branch" : "master",
+    "branch" : "bastion-work",
     "version" : "3.7",
     "baseTemplateUrl" : "[concat('https://raw.githubusercontent.com/',variables('gituser'),'/acs-engine/',variables('branch'),'/parts/openshift/',variables('version'),'/')]",
     "baseVMachineTemplateUriInfranode" : "[concat(variables('baseTemplateUrl'), 'infranode.json')]",
