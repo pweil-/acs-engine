@@ -446,26 +446,8 @@ then
     echo "    ignore_errors: yes" >> /home/${AUSERNAME}/subscribe.yml
 fi
 cat <<EOF >> /home/${AUSERNAME}/subscribe.yml
-  - name: disable all repos
-    shell: subscription-manager repos --disable="*"
-  - name: enable rhel7 repo
-    shell: subscription-manager repos --enable="rhel-7-server-rpms"
-  - name: enable extras repos
-    shell: subscription-manager repos --enable="rhel-7-server-extras-rpms"
-  - name: enable fastpath repos
-    shell: subscription-manager repos --enable="rhel-7-fast-datapath-rpms"
-  - name: enable OCP repos
-    shell: subscription-manager repos --enable="rhel-7-server-ose-3.7-rpms"
   - name: install the latest version of PyYAML
     yum: name=PyYAML state=latest
-  - name: Install the OCP client
-    yum: name=atomic-openshift-clients state=latest
-  - name: Install atomic-openshift
-    yum: name=atomic-openshift state=latest
-  - name: Update all hosts
-    yum: name="*" state=latest
-  - name: Install the docker
-    yum: name=docker state=latest
   - name: Start Docker
     service:
       name: docker
@@ -1122,7 +1104,7 @@ ansible all --module-name=ping > ansible-preinstall-ping.out || true
 ansible-playbook  /home/${AUSERNAME}/subscribe.yml
 
 echo "${RESOURCEGROUP} Bastion Host is starting ansible BYO"
-ansible-playbook  /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml < /dev/null
+ansible-playbook  /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml < /dev/null
 
 wget http://master1:8443/api > healtcheck.out
 
