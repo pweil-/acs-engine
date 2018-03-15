@@ -67,9 +67,6 @@
           "sshKeyData" : {
             "value" : "[parameters('sshKeyData')]"
           },
-          "baseTemplateUrl" : {
-            "value" : "[variables('baseTemplateUrl')]"
-          },
           "customImageURI": {
             "value" : "[parameters('customImageURI')]"
           },
@@ -112,20 +109,14 @@
           "adminUsername" : {
             "value" : "[parameters('adminUsername')]"
           },
-          "adminPassword" : {
-            "value" : "[parameters('adminPassword')]"
-          },
           "sshKeyData" : {
             "value" : "[parameters('sshKeyData')]"
           },
-          "numberOfNodes" : {
-            "value" : "[parameters('numberOfNodes')]"
+          "sshPrivateData" : {
+            "value" : "[parameters('sshPrivateData')]"
           },
           "baseTemplateUrl" : {
             "value" : "[variables('baseTemplateUrl')]"
-          },
-          "routerExtIP" : {
-            "value" : "[reference(parameters('WildcardZone')).ipAddress]"
           },
           "customImageURI": {
             "value" : "[parameters('customImageURI')]"
@@ -133,56 +124,8 @@
           "imageReference" : {
             "value" : "[variables(parameters('image'))]"
           },
-          "RHNUserName" : {
-            "value" : "[parameters('RHNUserName')]"
-          },
-          "RHNPassword" : {
-            "value" : "[parameters('RHNPassword')]"
-          },
-          "SubscriptionPoolId" : {
-            "value" : "[parameters('SubscriptionPoolId')]"
-          },
-          "sshPrivateData" : {
-            "value" : "[parameters('sshPrivateData')]"
-          },
-          "wildcardZone" : {
-            "value" : "[parameters('WildcardZone')]"
-          },
-          "registrystoragename" : {
-            "value" : "[variables('registryStorageName')]"
-          },
-          "registrykey" : {
-            "value" : "[listKeys(resourceId('Microsoft.Storage/storageAccounts',variables('registryStorageName')),'2015-06-15').key1]"
-          },
           "location" : {
             "value" : "[variables('location')]"
-          },
-          "subscriptionid" : {
-            "value" : "[variables('subscriptionId')]"
-          },
-          "tenantid" : {
-            "value" : "[variables('tenantId')]"
-          },
-          "aadclientid" : {
-            "value" : "[parameters('aadClientId')]"
-          },
-          "aadclientsecret" : {
-            "value" : "[parameters('aadClientSecret')]"
-          },
-          "rhsmmode" : {
-            "value" : "[parameters('rhsmUsernamePasswordOrActivationKey')]"
-          },
-          "openshiftsdn" : {
-            "value" : "[parameters('OpenShiftSDN')]"
-          },
-          "metrics" : {
-            "value" : "[parameters('metrics')]"
-          },
-          "logging" : {
-            "value" : "[parameters('logging')]"
-          },
-          "opslogging" : {
-            "value" : "[parameters('opslogging')]"
           }
         }
       }
@@ -204,9 +147,6 @@
           "vmName" : {
             "value" : "master1"
           },
-          "dnsName" : {
-            "value" : "[concat(resourceGroup().name,'m1')]"
-          },
           "subnetRef" : {
             "value" : "[variables('masterSubnetRef')]"
           },
@@ -219,17 +159,11 @@
           "sshKeyData" : {
             "value" : "[parameters('sshKeyData')]"
           },
-          "baseTemplateUrl" : {
-            "value" : "[variables('baseTemplateUrl')]"
-          },
           "customImageURI": {
             "value" : "[parameters('customImageURI')]"
           },
           "imageReference" : {
             "value" : "[variables(parameters('image'))]"
-          },
-          "sshPrivateData" : {
-            "value" : "[parameters('sshPrivateData')]"
           },
           "masterLoadBalancerName" : {
             "value" : "[variables('masterLoadBalancerName')]"

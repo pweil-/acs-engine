@@ -17,22 +17,13 @@
     "adminUsername" : {
       "type" : "string"
     },
-    "adminPassword" : {
-      "type" : "securestring"
-    },
     "sshKeyData" : {
       "type" : "string",
       "metadata" : {
         "description" : "SSH RSA public key file as a string."
       }
     },
-    "numberOfNodes" : {
-      "type" : "int"
-    },
     "baseTemplateUrl" : {
-      "type" : "string"
-    },
-    "routerExtIP" : {
       "type" : "string"
     },
     "customImageURI" : {
@@ -47,13 +38,7 @@
         "description" : "imageReference object that should be used to create the virtual machine"
       }
     },
-    "RHNUserName" : {
-      "type" : "string"
-    },
-    "RHNPassword" : {
-      "type" : "securestring"
-    },
-    "SubscriptionPoolId" : {
+    "location" : {
       "type" : "string"
     },
     "sshPrivateData" : {
@@ -61,45 +46,6 @@
       "metadata" : {
         "description" : "SSH RSA private key file as a string."
       }
-    },
-    "wildcardZone" : {
-      "type" : "string"
-    },
-    "registrystoragename" : {
-      "type" : "string"
-    },
-    "registrykey" : {
-      "type" : "string"
-    },
-    "location" : {
-      "type" : "string"
-    },
-    "subscriptionid" : {
-      "type" : "string"
-    },
-    "tenantid" : {
-      "type" : "string"
-    },
-    "aadclientid" : {
-      "type" : "string"
-    },
-    "aadclientsecret" : {
-      "type" : "string"
-    },
-    "rhsmmode" : {
-      "type" : "string"
-    },
-    "openshiftsdn" : {
-      "type" : "string"
-    },
-    "metrics" : {
-      "type" : "bool"
-    },
-    "logging" : {
-      "type" : "bool"
-    },
-    "opslogging" : {
-      "type" : "bool"
     }
   },
   "variables" : {
@@ -213,7 +159,7 @@
           ]
         },
         "protectedSettings" : {
-          "commandToExecute" : "[ concat('bash bastion.sh ', resourceGroup().name, ' ', parameters('wildcardZone'), ' ',  parameters('adminUsername'), ' ', parameters('adminPassword'), ' ', reference(concat(parameters('vmName'), 'pip')).dnsSettings.fqdn, ' ', padLeft(parameters('numberOfNodes'), 2, '0'), ' ', parameters('routerExtIP'),' ', parameters('RHNUserName'), ' ', parameters('RHNPassword'),' ', parameters('SubscriptionPoolId'), ' ',  variables('sQuote'),  parameters('sshPrivateData'), variables('sQuote'),  ' ', variables('sQuote'), parameters('sshKeyData'), variables('sQuote'),' ',parameters('registrystoragename'),' ',parameters('registrykey'),' ',parameters('location'),' ',parameters('subscriptionid'),' ',parameters('tenantid'),' ',parameters('aadclientid'),' ',parameters('aadclientsecret'),' ',parameters('rhsmmode'),' ',parameters('openshiftsdn'),' ',parameters('metrics'),' ',parameters('logging'),' ',parameters('opslogging'),' ',parameters('baseTemplateUrl'))]"
+          "commandToExecute" : "[ concat('bash bastion.sh ', parameters('sshPrivateData'), ' ', parameters('sshKeyData')) ]"
         }
       }
     },

@@ -5,9 +5,6 @@
     "vmName" : {
       "type" : "string"
     },
-    "dnsName" : {
-      "type" : "string"
-    },
     "subnetRef" : {
       "type" : "string"
     },
@@ -23,9 +20,6 @@
         "description" : "SSH RSA public key file as a string."
       }
     },
-    "baseTemplateUrl" : {
-      "type" : "string"
-    },
     "customImageURI" : {
       "type" : "string",
       "metadata" : {
@@ -36,12 +30,6 @@
       "type" : "object",
       "metadata" : {
         "description" : "imageReference object that should be used to create the virtual machine"
-      }
-    },
-    "sshPrivateData" : {
-      "type" : "securestring",
-      "metadata" : {
-        "description" : "SSH RSA private key file as a string."
       }
     },
     "masterLoadBalancerName" : {
@@ -146,32 +134,6 @@
         },
         "availabilitySet" : {
           "id" : "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySet'))]"
-        }
-      }
-    },
-    {
-      "type" : "Microsoft.Compute/virtualMachines/extensions",
-      "name" : "[concat(parameters('vmName'),'/installcustomscript')]",
-      "apiVersion" : "[variables('apiVersion')]",
-      "location" : "[resourceGroup().location]",
-      "tags" : {
-        "displayName" : "VirtualMachineCustomScriptExtension"
-      },
-      "dependsOn" : [
-        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
-      ],
-      "properties" : {
-        "publisher" : "Microsoft.Azure.Extensions",
-        "type" : "CustomScript",
-        "typeHandlerVersion" : "2.0",
-        "autoUpgradeMinorVersion" : true,
-        "settings" : {
-          "fileUris" : [
-            "[concat(parameters('baseTemplateUrl'), 'master.sh')]"
-          ]
-        },
-        "protectedSettings" : {
-          "commandToExecute" : "[ concat('sh master.sh ', parameters('adminUsername'), ' ', parameters('sshPrivateData'),  ' ', parameters('sshKeyData')) ]"
         }
       }
     },
