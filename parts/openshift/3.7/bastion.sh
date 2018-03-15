@@ -330,8 +330,9 @@ openshift_registry_selector='role=infra'
 # Select default nodes for projects
 osm_default_node_selector="role=app"
 ansible_become=yes
-ansible_ssh_user=${AUSERNAME}
-remote_user=${AUSERNAME}
+# TODO - pweil changed this
+ansible_ssh_user=root
+remote_user=root
 
 openshift_master_default_subdomain=${WILDCARDNIP}
 #openshift_master_default_subdomain=${WILDCARDZONE}.${FULLDOMAIN}
