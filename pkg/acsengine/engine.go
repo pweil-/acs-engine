@@ -90,11 +90,9 @@ const (
 	windowsParams                 = "windowsparams.t"
 
 	//OpenShift templates
-	openshiftBaseFile  = "openshift/base.t"
-	openshiftParams    = "openshift/params.t"
-	openshiftResources = "openshift/resources.t"
-	openshiftVars      = "openshift/vars.t"
-	openshiftOutputs   = "openshift/outputs.t"
+	openshiftBase         = "openshift/openshift.json"
+	openshiftNodeScript   = "openshift/node.sh"
+	openshiftMasterScript = "openshift/master.sh"
 )
 
 const (
@@ -109,7 +107,7 @@ var dcosTemplateFiles = []string{dcosBaseFile, dcosAgentResourcesVMAS, dcosAgent
 var kubernetesTemplateFiles = []string{kubernetesBaseFile, kubernetesAgentResourcesVMAS, kubernetesAgentVars, kubernetesMasterResources, kubernetesMasterVars, kubernetesParams, kubernetesWinAgentVars}
 var swarmTemplateFiles = []string{swarmBaseFile, swarmParams, swarmAgentResourcesVMAS, swarmAgentVars, swarmAgentResourcesVMSS, swarmAgentResourcesClassic, swarmBaseFile, swarmMasterResources, swarmMasterVars, swarmWinAgentResourcesVMAS, swarmWinAgentResourcesVMSS}
 var swarmModeTemplateFiles = []string{swarmBaseFile, swarmParams, swarmAgentResourcesVMAS, swarmAgentVars, swarmAgentResourcesVMSS, swarmAgentResourcesClassic, swarmBaseFile, swarmMasterResources, swarmMasterVars, swarmWinAgentResourcesVMAS, swarmWinAgentResourcesVMSS}
-var openshiftTemplateFiles = []string{openshiftBaseFile, openshiftParams, openshiftResources, openshiftVars, openshiftOutputs}
+var openshiftTemplateFiles = []string{openshiftBase, openshiftNodeScript, openshiftMasterScript}
 
 /**
  The following parameters could be either a plain text, or referenced to a secret in a keyvault:
@@ -361,7 +359,7 @@ func (t *TemplateGenerator) prepareTemplateFiles(properties *api.Properties) ([]
 		baseFile = swarmBaseFile
 	case api.OpenShift:
 		files = append(commonTemplateFiles, openshiftTemplateFiles...)
-		baseFile = openshiftBaseFile
+		baseFile = openshiftBase
 	default:
 		return nil, "", t.Translator.Errorf("orchestrator '%s' is unsupported", properties.OrchestratorProfile.OrchestratorType)
 	}
@@ -710,27 +708,9 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 	}
 
 	if properties.OrchestratorProfile.OrchestratorType == api.OpenShift {
-		addValue(parametersMap, "adminUsername", properties.OrchestratorProfile.OpenShiftConfig.AdminUsername)
-		addValue(parametersMap, "adminPassword", properties.OrchestratorProfile.OpenShiftConfig.AdminPassword)
-		addValue(parametersMap, "sshKeyData", properties.OrchestratorProfile.OpenShiftConfig.SSHKeyData)
-		addValue(parametersMap, "WildcardZone", properties.OrchestratorProfile.OpenShiftConfig.WildcardZone)
-		addValue(parametersMap, "numberOfNodes", properties.OrchestratorProfile.OpenShiftConfig.NumberOfNodes)
-		addValue(parametersMap, "customImageURI", properties.OrchestratorProfile.OpenShiftConfig.CustomImageURI)
-		addValue(parametersMap, "image", properties.OrchestratorProfile.OpenShiftConfig.Image)
-		addValue(parametersMap, "masterVMSize", properties.OrchestratorProfile.OpenShiftConfig.MasterVMSize)
-		addValue(parametersMap, "infranodeVMSize", properties.OrchestratorProfile.OpenShiftConfig.InfraNodeVMSize)
-		addValue(parametersMap, "nodeVMSize", properties.OrchestratorProfile.OpenShiftConfig.NodeVMSize)
-		addValue(parametersMap, "rhsmUsernamePasswordOrActivationKey", properties.OrchestratorProfile.OpenShiftConfig.RHSMUsernamePasswordOrActivationKey)
-		addValue(parametersMap, "RHNUserName", properties.OrchestratorProfile.OpenShiftConfig.RHNUserName)
-		addValue(parametersMap, "RHNPassword", properties.OrchestratorProfile.OpenShiftConfig.RHNPassword)
-		addValue(parametersMap, "SubscriptionPoolId", properties.OrchestratorProfile.OpenShiftConfig.SubscriptionPoolID)
-		addValue(parametersMap, "sshPrivateData", properties.OrchestratorProfile.OpenShiftConfig.SSHPrivateData)
-		addValue(parametersMap, "aadClientId", properties.OrchestratorProfile.OpenShiftConfig.AADClientID)
-		addValue(parametersMap, "aadClientSecret", properties.OrchestratorProfile.OpenShiftConfig.AADClientSecret)
-		addValue(parametersMap, "OpenShiftSDN", properties.OrchestratorProfile.OpenShiftConfig.OpenShiftSDN)
-		addValue(parametersMap, "metrics", properties.OrchestratorProfile.OpenShiftConfig.Metrics)
-		addValue(parametersMap, "logging", properties.OrchestratorProfile.OpenShiftConfig.Logging)
-		addValue(parametersMap, "opslogging", properties.OrchestratorProfile.OpenShiftConfig.OpsLogging)
+		addValue(parametersMap, "location", properties.OrchestratorProfile.OpenShiftConfig.Location)
+		addValue(parametersMap, "imageResourceGroup", properties.OrchestratorProfile.OpenShiftConfig.ImageResourceGroup)
+		addValue(parametersMap, "imageName", properties.OrchestratorProfile.OpenShiftConfig.ImageName)
 	}
 
 	if strings.HasPrefix(properties.OrchestratorProfile.OrchestratorType, api.DCOS) {
@@ -824,7 +804,7 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 	// TODO: HACK: when we use the same parameters, this will no longer be
 	// necessary
 	if properties.OrchestratorProfile.OrchestratorType == api.OpenShift {
-		for _, key := range []string{"agentCount", "agentSubnet", "agentVMSize", "agentosImageOffer", "agentosImagePublisher", "agentosImageSKU", "agentosImageVersion", "firstConsecutiveStaticIP", "fqdnEndpointSuffix", "linuxAdminUsername", "location", "masterEndpointDNSNamePrefix", "masterSubnet", "osImageOffer", "osImagePublisher", "osImageSKU", "osImageVersion", "sshRSAPublicKey", "targetEnvironment"} {
+		for _, key := range []string{"agentCount", "agentSubnet", "agentosImageOffer", "agentosImagePublisher", "agentosImageSKU", "agentosImageVersion", "firstConsecutiveStaticIP", "fqdnEndpointSuffix", "linuxAdminUsername", "masterSubnet", "osImageOffer", "osImagePublisher", "osImageSKU", "osImageVersion", "targetEnvironment"} {
 			delete(parametersMap, key)
 		}
 	}
@@ -1655,6 +1635,24 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 		},
 		"EnablePodSecurityPolicy": func() bool {
 			return helpers.IsTrueBoolPointer(cs.Properties.OrchestratorProfile.KubernetesConfig.EnablePodSecurityPolicy)
+		},
+		"OpenShiftGetMasterSh": func() string {
+			tb := MustAsset("openshift/master.sh")
+			t, _ := template.New("master").Funcs(map[string]interface{}{
+				"Base64": base64.StdEncoding.EncodeToString,
+			}).Parse(string(tb))
+			b := &bytes.Buffer{}
+			t.Execute(b, cs.Properties)
+			return b.String()
+		},
+		"OpenShiftGetNodeSh": func() string {
+			tb := MustAsset("openshift/node.sh")
+			t, _ := template.New("node").Funcs(map[string]interface{}{
+				"Base64": base64.StdEncoding.EncodeToString,
+			}).Parse(string(tb))
+			b := &bytes.Buffer{}
+			t.Execute(b, cs.Properties)
+			return b.String()
 		},
 		// inspired by http://stackoverflow.com/questions/18276173/calling-a-template-with-several-pipeline-parameters/18276968#18276968
 		"dict": func(values ...interface{}) (map[string]interface{}, error) {

@@ -598,27 +598,12 @@ func convertVLabsDcosConfig(vlabs *vlabs.DcosConfig, api *DcosConfig) {
 }
 
 func convertVLabsOpenShiftConfig(vlabs *vlabs.OpenShiftConfig, api *OpenShiftConfig) {
-	api.AdminUsername = vlabs.AdminUsername
-	api.AdminPassword = vlabs.AdminPassword
-	api.SSHKeyData = vlabs.SSHKeyData
-	api.WildcardZone = vlabs.WildcardZone
-	api.NumberOfNodes = vlabs.NumberOfNodes
-	api.CustomImageURI = vlabs.CustomImageURI
-	api.Image = vlabs.Image
-	api.MasterVMSize = vlabs.MasterVMSize
-	api.InfraNodeVMSize = vlabs.InfraNodeVMSize
-	api.NodeVMSize = vlabs.NodeVMSize
-	api.RHSMUsernamePasswordOrActivationKey = vlabs.RHSMUsernamePasswordOrActivationKey
-	api.RHNUserName = vlabs.RHNUserName
-	api.RHNPassword = vlabs.RHNPassword
-	api.SubscriptionPoolID = vlabs.SubscriptionPoolID
-	api.SSHPrivateData = vlabs.SSHPrivateData
-	api.AADClientID = vlabs.AADClientID
-	api.AADClientSecret = vlabs.AADClientSecret
-	api.OpenShiftSDN = vlabs.OpenShiftSDN
-	api.Metrics = vlabs.Metrics
-	api.Logging = vlabs.Logging
-	api.OpsLogging = vlabs.OpsLogging
+	api.Location = vlabs.Location
+	api.RouterIP = vlabs.RouterIP
+	api.ImageResourceGroup = vlabs.ImageResourceGroup
+	api.ImageName = vlabs.ImageName
+	api.YumCert = vlabs.YumCert
+	api.YumKey = vlabs.YumKey
 }
 
 func convertVLabsKubernetesConfig(vlabs *vlabs.KubernetesConfig, api *KubernetesConfig) {
@@ -665,37 +650,14 @@ func setVlabsOpenShiftDefaults(vp *vlabs.Properties, api *OrchestratorProfile) {
 	if api.OpenShiftConfig == nil {
 		api.OpenShiftConfig = &OpenShiftConfig{}
 	}
-	if api.OpenShiftConfig.NumberOfNodes == 0 {
-		api.OpenShiftConfig.NumberOfNodes = 1
+	if api.OpenShiftConfig.Location == "" {
+		api.OpenShiftConfig.Location = "eastus"
 	}
-	if api.OpenShiftConfig.Image == "" {
-		api.OpenShiftConfig.Image = "rhel"
+	if api.OpenShiftConfig.ImageResourceGroup == "" {
+		api.OpenShiftConfig.ImageResourceGroup = "kwoodsontest"
 	}
-	if api.OpenShiftConfig.MasterVMSize == "" {
-		api.OpenShiftConfig.MasterVMSize = "Standard_DS2_v2" // refarch default is Standard_DS4_v2; that's very large
-	}
-	if api.OpenShiftConfig.InfraNodeVMSize == "" {
-		api.OpenShiftConfig.InfraNodeVMSize = "Standard_DS2_v2" // refarch default is Standard_DS4_v2; that's very large
-	}
-	if api.OpenShiftConfig.NodeVMSize == "" {
-		api.OpenShiftConfig.NodeVMSize = "Standard_DS2_v2" // refarch default is Standard_DS4_v2; that's very large
-	}
-	if api.OpenShiftConfig.RHSMUsernamePasswordOrActivationKey == "" {
-		api.OpenShiftConfig.RHSMUsernamePasswordOrActivationKey = "usernamepassword"
-	}
-	if api.OpenShiftConfig.OpenShiftSDN == "" {
-		api.OpenShiftConfig.OpenShiftSDN = "redhat/openshift-ovs-multitenant"
-	}
-	t, f := true, false
-
-	if api.OpenShiftConfig.Metrics == nil {
-		api.OpenShiftConfig.Metrics = &t
-	}
-	if api.OpenShiftConfig.Logging == nil {
-		api.OpenShiftConfig.Logging = &t
-	}
-	if api.OpenShiftConfig.OpsLogging == nil {
-		api.OpenShiftConfig.OpsLogging = &f
+	if api.OpenShiftConfig.ImageName == "" {
+		api.OpenShiftConfig.ImageName = "rhel7.4_base"
 	}
 }
 
