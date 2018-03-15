@@ -2,6 +2,13 @@
   "$schema" : "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion" : "1.0.0.0",
   "parameters" : {
+    "customData": {
+      "type": "string",
+      "defaultValue": "hostname: bastion",
+      "metadata": {
+        "description": "String passed down to the Virtual Machine."
+      }
+    },
     "vmName" : {
       "type" : "string"
     },
@@ -103,6 +110,7 @@
           "vmSize" : "[parameters('vmSize')]"
         },
         "osProfile" : {
+          "customData": "[base64(parameters('customData'))]",
           "computerName" : "[parameters('vmName')]",
           "adminUsername" : "[parameters('adminUsername')]",
           "linuxConfiguration" : {

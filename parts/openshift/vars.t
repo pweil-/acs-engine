@@ -1,5 +1,5 @@
-    "gituser" : "kargakis",
-    "branch" : "master",
+    "gituser" : "pweil-",
+    "branch" : "customdata",
     "version" : "3.7",
     "baseTemplateUrl" : "[concat('https://raw.githubusercontent.com/',variables('gituser'),'/acs-engine/',variables('branch'),'/parts/openshift/',variables('version'),'/')]",
     "baseVMachineTemplateUriInfranode" : "[concat(variables('baseTemplateUrl'), 'infranode.json')]",
