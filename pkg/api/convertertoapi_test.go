@@ -156,8 +156,6 @@ func TestKubernetesVlabsDefaults(t *testing.T) {
 }
 
 func TestConvertVLabsOrchestratorProfile(t *testing.T) {
-	truePtr := true
-	falsePtr := false
 	tests := map[string]struct {
 		props  *vlabs.Properties
 		expect *OrchestratorProfile
@@ -172,17 +170,9 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 				OrchestratorType:    OpenShift,
 				OrchestratorVersion: common.OpenShiftDefaultVersion,
 				OpenShiftConfig: &OpenShiftConfig{
-					NumberOfNodes:                       1,
-					Image:                               "rhel",
-					MasterVMSize:                        "Standard_DS2_v2",
-					InfraNodeVMSize:                     "Standard_DS2_v2",
-					NodeVMSize:                          "Standard_DS2_v2",
-					RHSMUsernamePasswordOrActivationKey: "usernamepassword",
-					OpenShiftSDN:                        "redhat/openshift-ovs-multitenant",
-					// TODO these should not be used
-					Metrics:    &truePtr,
-					Logging:    &truePtr,
-					OpsLogging: &falsePtr,
+					Location:           "eastus",
+					ImageResourceGroup: "kwoodsontest",
+					ImageName:          "rhel7.4_base",
 				},
 			},
 		},
@@ -191,17 +181,12 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 				OrchestratorProfile: &vlabs.OrchestratorProfile{
 					OrchestratorType: OpenShift,
 					OpenShiftConfig: &vlabs.OpenShiftConfig{
-						NumberOfNodes:                       2,
-						Image:                               "abc",
-						MasterVMSize:                        "def",
-						InfraNodeVMSize:                     "ghi",
-						NodeVMSize:                          "jkl",
-						RHSMUsernamePasswordOrActivationKey: "mno",
-						OpenShiftSDN:                        "pqr",
-						// TODO these should not be used
-						Metrics:    &falsePtr,
-						Logging:    &falsePtr,
-						OpsLogging: &truePtr,
+						Location:           "abc",
+						RouterIP:           "def",
+						ImageResourceGroup: "ghi",
+						ImageName:          "jkl",
+						YumCert:            "mno",
+						YumKey:             "pqr",
 					},
 				},
 			},
@@ -209,17 +194,12 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 				OrchestratorType:    OpenShift,
 				OrchestratorVersion: common.OpenShiftDefaultVersion,
 				OpenShiftConfig: &OpenShiftConfig{
-					NumberOfNodes:                       2,
-					Image:                               "abc",
-					MasterVMSize:                        "def",
-					InfraNodeVMSize:                     "ghi",
-					NodeVMSize:                          "jkl",
-					RHSMUsernamePasswordOrActivationKey: "mno",
-					OpenShiftSDN:                        "pqr",
-					// TODO these should not be used
-					Metrics:    &falsePtr,
-					Logging:    &falsePtr,
-					OpsLogging: &truePtr,
+					Location:           "abc",
+					RouterIP:           "def",
+					ImageResourceGroup: "ghi",
+					ImageName:          "jkl",
+					YumCert:            "mno",
+					YumKey:             "pqr",
 				},
 			},
 		},

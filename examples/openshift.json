@@ -4,16 +4,12 @@
     "orchestratorProfile": {
       "orchestratorType": "OpenShift",
       "openShiftConfig": {
-        "adminUsername": "",
-        "adminPassword": "",
-        "sshKeyData": "",
-        "WildcardZone": "",
-        "rhnUsername": "",
-        "rhnPassword": "",
-        "SubscriptionPoolId": "",
-        "sshPrivateData": "",
-        "aadClientId": "",
-        "aadClientSecret": ""
+        "location": "",
+        "routerip": "",
+        "imageResourceGroup": "",
+        "imageName": "",
+        "yumCert": "",
+        "yumKey": ""
       }
     },
     "masterProfile": {

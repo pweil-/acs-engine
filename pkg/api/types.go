@@ -276,27 +276,14 @@ type DcosConfig struct {
 
 // OpenShiftConfig holds configuration for OpenShift
 type OpenShiftConfig struct {
-	AdminUsername                       string `json:"adminUsername,omitempty"`
-	AdminPassword                       string `json:"adminPassword,omitempty"`
-	SSHKeyData                          string `json:"sshKeyData,omitempty"`
-	WildcardZone                        string `json:"WildcardZone,omitempty"`
-	NumberOfNodes                       int    `json:"numberOfNodes,omitempty"`
-	CustomImageURI                      string `json:"customImageURI,omitempty"`
-	Image                               string `json:"image,omitempty"`
-	MasterVMSize                        string `json:"masterVMSize,omitempty"`
-	InfraNodeVMSize                     string `json:"infranodeVMSize,omitempty"`
-	NodeVMSize                          string `json:"nodeVMSize,omitempty"`
-	RHSMUsernamePasswordOrActivationKey string `json:"rhsmUsernamePasswordOrActivationKey,omitempty"`
-	RHNUserName                         string `json:"RHNUserName,omitempty"`
-	RHNPassword                         string `json:"RHNPassword,omitempty"`
-	SubscriptionPoolID                  string `json:"SubscriptionPoolId,omitempty"`
-	SSHPrivateData                      string `json:"sshPrivateData,omitempty"`
-	AADClientID                         string `json:"aadClientId,omitempty"`
-	AADClientSecret                     string `json:"aadClientSecret,omitempty"`
-	OpenShiftSDN                        string `json:"OpenShiftSDN,omitempty"`
-	Metrics                             *bool  `json:"metrics,omitempty"`
-	Logging                             *bool  `json:"logging,omitempty"`
-	OpsLogging                          *bool  `json:"opslogging,omitempty"`
+	Location           string `json:"location,omitempty"`
+	RouterIP           string `json:"routerip,omitempty"`
+	ImageResourceGroup string `json:"imageResourceGroup,omitempty"`
+	ImageName          string `json:"imageName,omitempty"`
+	YumCert            string `json:"yumCert,omitempty"`
+	YumKey             string `json:"yumKey,omitempty"`
+
+	ConfigBundles map[string][]byte `json:"-"`
 }
 
 // MasterProfile represents the definition of the master cluster

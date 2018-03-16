@@ -1,0 +1,27 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "eastus"
+        },
+        "masterVMSize": {
+            "value": "Standard_D4s_v3"
+        },
+        "agentVMSize": {
+            "value": "Standard_D4s_v3"
+        },
+        "imageResourceGroup": {
+            "value": "kwoodsontest"
+        },
+        "imageName": {
+            "value": "rhel7.4_base"
+        },
+        "sshRSAPublicKey": {
+            "value": ""
+        },
+        "masterEndpointDNSNamePrefix": {
+            "value": ""
+        }
+    }
+}

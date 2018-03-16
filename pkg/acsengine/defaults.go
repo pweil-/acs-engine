@@ -11,6 +11,8 @@ import (
 	"github.com/Azure/acs-engine/pkg/api"
 	"github.com/Azure/acs-engine/pkg/api/common"
 	"github.com/Masterminds/semver"
+	"github.com/jim-minter/certgen/pkg/certgen"
+	"github.com/jim-minter/certgen/pkg/filesystem"
 )
 
 const (
@@ -601,7 +603,91 @@ func setStorageDefaults(a *api.Properties) {
 	}
 }
 
+func openShiftSetDefaultCerts(a *api.Properties) (bool, error) {
+	c := certgen.Config{
+		Nodes: []certgen.Node{
+			{
+				Hostname: "master",
+				IPs: []net.IP{
+					net.ParseIP("10.0.0.10"),
+				},
+				Master: &certgen.Master{
+					Port: 8443,
+				},
+			},
+			{
+				Hostname: "node1",
+				IPs: []net.IP{
+					net.ParseIP("10.0.0.11"),
+				},
+			},
+		},
+		ExternalMasterHostname: fmt.Sprintf("%s.%s.cloudapp.azure.com", a.MasterProfile.DNSPrefix, a.OrchestratorProfile.OpenShiftConfig.Location),
+		ExternalRouterIP:       net.ParseIP(a.OrchestratorProfile.OpenShiftConfig.RouterIP),
+	}
+
+	for i, node := range c.Nodes {
+		if node.Master == nil {
+			continue
+		}
+		err := c.PrepareMasterCerts(&c.Nodes[i])
+		if err != nil {
+			return false, err
+		}
+		err = c.PrepareMasterKubeConfigs(&c.Nodes[i])
+		if err != nil {
+			return false, err
+		}
+		err = c.PrepareMasterFiles(&c.Nodes[i])
+		if err != nil {
+			return false, err
+		}
+	}
+
+	for i := range c.Nodes {
+		err := c.PrepareNodeCerts(&c.Nodes[i])
+		if err != nil {
+			return false, err
+		}
+
+		err = c.PrepareNodeKubeConfig(&c.Nodes[i])
+		if err != nil {
+			return false, err
+		}
+	}
+
+	if a.OrchestratorProfile.OpenShiftConfig.ConfigBundles == nil {
+		a.OrchestratorProfile.OpenShiftConfig.ConfigBundles = make(map[string][]byte)
+	}
+
+	for i, node := range c.Nodes {
+		b := &bytes.Buffer{}
+
+		fs, err := filesystem.NewTGZFile(b)
+		if err != nil {
+			return false, err
+		}
+
+		err = c.WriteNode(fs, &c.Nodes[i])
+		if err != nil {
+			return false, err
+		}
+
+		err = fs.Close()
+		if err != nil {
+			return false, err
+		}
+
+		a.OrchestratorProfile.OpenShiftConfig.ConfigBundles[node.Hostname] = b.Bytes()
+	}
+
+	return false, nil
+}
+
 func setDefaultCerts(a *api.Properties) (bool, error) {
+	if a.MasterProfile != nil && a.OrchestratorProfile.OrchestratorType == api.OpenShift {
+		return openShiftSetDefaultCerts(a)
+	}
 
 	if a.MasterProfile == nil || a.OrchestratorProfile.OrchestratorType != api.Kubernetes {
 		return false, nil
