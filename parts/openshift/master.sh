@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 cat >/var/lib/yum/client-cert.pem <<'EOF'
 {{ .OrchestratorProfile.OpenShiftConfig.YumCert }}
@@ -127,5 +127,8 @@ for file in /usr/share/ansible/openshift-ansible/roles/openshift_examples/files/
 done
 
 # TODO: possibly wait here for convergence?
+
+mkdir -p /root/.kube
+cp /etc/origin/master/admin.kubeconfig /root/.kube/config
 
 exit 0

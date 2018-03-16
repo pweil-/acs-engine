@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 cat >/var/lib/yum/client-cert.pem <<'EOF'
 {{ .OrchestratorProfile.OpenShiftConfig.YumCert }}

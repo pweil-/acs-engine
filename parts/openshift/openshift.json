@@ -300,7 +300,7 @@
         {
             "name": "master",
             "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2016-04-30-preview",
+            "apiVersion": "2017-03-30",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "Microsoft.Network/networkInterfaces/master-nic"
@@ -347,7 +347,7 @@
         {
             "name": "node1",
             "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2016-04-30-preview",
+            "apiVersion": "2017-03-30",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "Microsoft.Network/networkInterfaces/node1-nic"
