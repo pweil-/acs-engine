@@ -19,6 +19,8 @@ func init() {
 	syscall.Umask(umask)
 }
 
+// Filesystem provides methods which are runnable on a bare filesystem or a
+// tar.gz file
 type Filesystem interface {
 	WriteFile(filename string, data []byte, perm os.FileMode) error
 	Close() error
@@ -30,6 +32,7 @@ type filesystem struct {
 
 var _ Filesystem = &filesystem{}
 
+// NewFilesystem returns a Filesystem interface backed by a bare filesystem
 func NewFilesystem(name string) (Filesystem, error) {
 	err := os.RemoveAll(name)
 	if err != nil {
@@ -70,6 +73,7 @@ type tgzfile struct {
 
 var _ Filesystem = &tgzfile{}
 
+// NewTGZFile returns a Filesystem interface backed by a tar.gz file
 func NewTGZFile(r io.Writer) (Filesystem, error) {
 	gz := gzip.NewWriter(r)
 	tw := &tgzfile{

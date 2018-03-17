@@ -8,10 +8,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/jim-minter/certgen/pkg/certgen/templates"
-	"github.com/jim-minter/certgen/pkg/filesystem"
+	"github.com/Azure/acs-engine/pkg/certgen/templates"
+	"github.com/Azure/acs-engine/pkg/filesystem"
 )
 
+// PrepareMasterFiles creates the shared authentication and encryption secrets
 func (c *Config) PrepareMasterFiles(node *Node) error {
 	b := make([]byte, 24)
 	_, err := rand.Read(b)
@@ -29,6 +30,7 @@ func (c *Config) PrepareMasterFiles(node *Node) error {
 	return nil
 }
 
+// WriteMasterFiles writes the templated master config
 func (c *Config) WriteMasterFiles(fs filesystem.Filesystem, node *Node) error {
 	for _, name := range templates.AssetNames() {
 		if !strings.HasPrefix(name, "master/") {
@@ -58,6 +60,7 @@ func (c *Config) WriteMasterFiles(fs filesystem.Filesystem, node *Node) error {
 	return nil
 }
 
+// WriteNodeFiles writes the templated node config
 func (c *Config) WriteNodeFiles(fs filesystem.Filesystem, node *Node) error {
 	for _, name := range templates.AssetNames() {
 		if !strings.HasPrefix(name, "node/") {

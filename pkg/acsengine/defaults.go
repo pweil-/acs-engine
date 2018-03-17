@@ -10,9 +10,9 @@ import (
 
 	"github.com/Azure/acs-engine/pkg/api"
 	"github.com/Azure/acs-engine/pkg/api/common"
+	"github.com/Azure/acs-engine/pkg/certgen"
+	"github.com/Azure/acs-engine/pkg/filesystem"
 	"github.com/Masterminds/semver"
-	"github.com/jim-minter/certgen/pkg/certgen"
-	"github.com/jim-minter/certgen/pkg/filesystem"
 )
 
 const (
