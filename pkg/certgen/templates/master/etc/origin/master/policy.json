@@ -179,14 +179,35 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "admissionregistration.k8s.io"
+                    ],
+                    "resources": [
+                        "mutatingwebhookconfigurations",
+                        "validatingwebhookconfigurations"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
                         "apps"
                     ],
                     "resources": [
                         "controllerrevisions",
+                        "daemonsets",
+                        "daemonsets/status",
                         "deployments",
                         "deployments/scale",
                         "deployments/status",
+                        "replicasets",
+                        "replicasets/scale",
+                        "replicasets/status",
                         "statefulsets",
+                        "statefulsets/scale",
                         "statefulsets/status"
                     ]
                 },
@@ -249,9 +270,7 @@
                         "cronjobs",
                         "cronjobs/status",
                         "jobs",
-                        "jobs/status",
-                        "scheduledjobs",
-                        "scheduledjobs/status"
+                        "jobs/status"
                     ]
                 },
                 {
@@ -285,6 +304,20 @@
                         "replicationcontrollers/scale",
                         "storageclasses",
                         "thirdpartyresources"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "events.k8s.io"
+                    ],
+                    "resources": [
+                        "events"
                     ]
                 },
                 {
@@ -644,6 +677,7 @@
                     "resources": [
                         "localsubjectaccessreviews",
                         "selfsubjectaccessreviews",
+                        "selfsubjectrulesreviews",
                         "subjectaccessreviews"
                     ]
                 },
@@ -949,10 +983,13 @@
             "kind": "ClusterRole",
             "apiVersion": "v1",
             "metadata": {
-                "name": "admin",
+                "name": "system:openshift:aggregate-to-admin",
                 "creationTimestamp": null,
+                "labels": {
+                    "rbac.authorization.k8s.io/aggregate-to-admin": "true"
+                },
                 "annotations": {
-                    "openshift.io/description": "A user that has edit rights within the project and can change the project's membership.",
+                    "authorization.openshift.io/system-only": "true",
                     "openshift.io/reconcile-protect": "false"
                 }
             },
@@ -970,215 +1007,8 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "pods",
-                        "pods/attach",
-                        "pods/exec",
-                        "pods/portforward",
-                        "pods/proxy"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "configmaps",
-                        "endpoints",
-                        "persistentvolumeclaims",
-                        "replicationcontrollers",
-                        "replicationcontrollers/scale",
-                        "secrets",
-                        "serviceaccounts",
-                        "services",
-                        "services/proxy"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "bindings",
-                        "events",
-                        "limitranges",
-                        "namespaces",
-                        "namespaces/status",
-                        "pods/log",
-                        "pods/status",
-                        "replicationcontrollers/status",
-                        "resourcequotas",
-                        "resourcequotas/status"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "impersonate"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "serviceaccounts"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "autoscaling"
-                    ],
-                    "resources": [
-                        "horizontalpodautoscalers"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "batch"
-                    ],
-                    "resources": [
-                        "cronjobs",
-                        "jobs",
-                        "scheduledjobs"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "extensions"
-                    ],
-                    "resources": [
-                        "deployments",
-                        "deployments/rollback",
-                        "deployments/scale",
-                        "horizontalpodautoscalers",
-                        "networkpolicies",
-                        "replicasets",
-                        "replicasets/scale",
-                        "replicationcontrollers/scale"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "extensions"
-                    ],
-                    "resources": [
-                        "daemonsets"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "apps"
-                    ],
-                    "resources": [
-                        "deployments",
-                        "deployments/scale",
-                        "deployments/status",
-                        "statefulsets"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
                         "",
                         "authorization.openshift.io"
-                    ],
-                    "resources": [
-                        "rolebindings",
-                        "roles"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "rbac.authorization.k8s.io"
                     ],
                     "resources": [
                         "rolebindings",
@@ -1213,18 +1043,6 @@
                         "podsecuritypolicyreviews",
                         "podsecuritypolicyselfsubjectreviews",
                         "podsecuritypolicysubjectreviews"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "authorization.k8s.io"
-                    ],
-                    "resources": [
-                        "localsubjectaccessreviews"
                     ]
                 },
                 {
@@ -1567,6 +1385,26 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "extensions",
+                        "networking.k8s.io"
+                    ],
+                    "resources": [
+                        "networkpolicies"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
                         "",
                         "build.openshift.io"
                     ],
@@ -1608,200 +1446,17 @@
             "kind": "ClusterRole",
             "apiVersion": "v1",
             "metadata": {
-                "name": "edit",
+                "name": "system:openshift:aggregate-to-edit",
                 "creationTimestamp": null,
+                "labels": {
+                    "rbac.authorization.k8s.io/aggregate-to-edit": "true"
+                },
                 "annotations": {
-                    "openshift.io/description": "A user that can create and edit most objects in a project, but can not update the project's membership.",
+                    "authorization.openshift.io/system-only": "true",
                     "openshift.io/reconcile-protect": "false"
                 }
             },
             "rules": [
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "pods",
-                        "pods/attach",
-                        "pods/exec",
-                        "pods/portforward",
-                        "pods/proxy"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "configmaps",
-                        "endpoints",
-                        "persistentvolumeclaims",
-                        "replicationcontrollers",
-                        "replicationcontrollers/scale",
-                        "secrets",
-                        "serviceaccounts",
-                        "services",
-                        "services/proxy"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "bindings",
-                        "events",
-                        "limitranges",
-                        "namespaces",
-                        "namespaces/status",
-                        "pods/log",
-                        "pods/status",
-                        "replicationcontrollers/status",
-                        "resourcequotas",
-                        "resourcequotas/status"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "impersonate"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "serviceaccounts"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "autoscaling"
-                    ],
-                    "resources": [
-                        "horizontalpodautoscalers"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "batch"
-                    ],
-                    "resources": [
-                        "cronjobs",
-                        "jobs",
-                        "scheduledjobs"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "extensions"
-                    ],
-                    "resources": [
-                        "deployments",
-                        "deployments/rollback",
-                        "deployments/scale",
-                        "horizontalpodautoscalers",
-                        "replicasets",
-                        "replicasets/scale",
-                        "replicationcontrollers/scale"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "extensions"
-                    ],
-                    "resources": [
-                        "daemonsets"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "create",
-                        "delete",
-                        "deletecollection",
-                        "get",
-                        "list",
-                        "patch",
-                        "update",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "apps"
-                    ],
-                    "resources": [
-                        "deployments",
-                        "deployments/scale",
-                        "deployments/status",
-                        "statefulsets"
-                    ]
-                },
                 {
                     "verbs": [
                         "create",
@@ -2110,6 +1765,26 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "extensions",
+                        "networking.k8s.io"
+                    ],
+                    "resources": [
+                        "networkpolicies"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
                         "",
                         "build.openshift.io"
                     ],
@@ -2137,135 +1812,17 @@
             "kind": "ClusterRole",
             "apiVersion": "v1",
             "metadata": {
-                "name": "view",
+                "name": "system:openshift:aggregate-to-view",
                 "creationTimestamp": null,
+                "labels": {
+                    "rbac.authorization.k8s.io/aggregate-to-view": "true"
+                },
                 "annotations": {
-                    "openshift.io/description": "A user who can view but not edit any resources within the project. They can not view secrets or membership.",
+                    "authorization.openshift.io/system-only": "true",
                     "openshift.io/reconcile-protect": "false"
                 }
             },
             "rules": [
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "configmaps",
-                        "endpoints",
-                        "persistentvolumeclaims",
-                        "pods",
-                        "replicationcontrollers",
-                        "serviceaccounts",
-                        "services"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "bindings",
-                        "events",
-                        "limitranges",
-                        "namespaces",
-                        "namespaces/status",
-                        "pods/log",
-                        "pods/status",
-                        "replicationcontrollers/status",
-                        "resourcequotas",
-                        "resourcequotas/status"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "autoscaling"
-                    ],
-                    "resources": [
-                        "horizontalpodautoscalers"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "batch"
-                    ],
-                    "resources": [
-                        "cronjobs",
-                        "jobs",
-                        "scheduledjobs"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "extensions"
-                    ],
-                    "resources": [
-                        "deployments",
-                        "deployments/scale",
-                        "horizontalpodautoscalers",
-                        "replicasets",
-                        "replicasets/scale"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "extensions"
-                    ],
-                    "resources": [
-                        "daemonsets"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "apps"
-                    ],
-                    "resources": [
-                        "deployments",
-                        "deployments/scale",
-                        "statefulsets"
-                    ]
-                },
                 {
                     "verbs": [
                         "get",
@@ -2716,6 +2273,7 @@
                         "/oapi/*",
                         "/osapi",
                         "/osapi/",
+                        "/swagger-2.0.0.pb-v1",
                         "/swagger.json",
                         "/swaggerapi",
                         "/swaggerapi/*",
@@ -2952,6 +2510,7 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "apps",
                         "extensions"
                     ],
                     "resources": [
@@ -2965,6 +2524,7 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "apps",
                         "extensions"
                     ],
                     "resources": [
@@ -2978,6 +2538,7 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "apps",
                         "extensions"
                     ],
                     "resources": [
@@ -3264,6 +2825,18 @@
                     ],
                     "resources": [
                         "services"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "authorization.k8s.io"
+                    ],
+                    "resources": [
+                        "subjectaccessreviews"
                     ]
                 },
                 {
@@ -3791,6 +3364,20 @@
                 },
                 {
                     "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "networking.k8s.io"
+                    ],
+                    "resources": [
+                        "networkpolicies"
+                    ]
+                },
+                {
+                    "verbs": [
                         "get"
                     ],
                     "attributeRestrictions": null,
@@ -3923,6 +3510,7 @@
                         "/oapi/*",
                         "/osapi",
                         "/osapi/",
+                        "/swagger-2.0.0.pb-v1",
                         "/swagger.json",
                         "/swaggerapi",
                         "/swaggerapi/*",
@@ -4105,6 +3693,26 @@
                     "apiGroups": [
                         "",
                         "authorization.openshift.io"
+                    ],
+                    "resources": [
+                        "rolebindings",
+                        "roles"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "rbac.authorization.k8s.io"
                     ],
                     "resources": [
                         "rolebindings",
@@ -4807,6 +4415,19 @@
                 },
                 {
                     "verbs": [
+                        "delete"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "",
+                        "build.openshift.io"
+                    ],
+                    "resources": [
+                        "builds"
+                    ]
+                },
+                {
+                    "verbs": [
                         "create",
                         "patch",
                         "update"
@@ -4999,20 +4620,6 @@
                     "attributeRestrictions": null,
                     "apiGroups": [
                         "authorization.k8s.io"
-                    ],
-                    "resources": [
-                        "subjectaccessreviews"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "list",
-                        "watch"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "template.openshift.io"
                     ],
                     "resources": [
                         "subjectaccessreviews"
@@ -6352,6 +5959,46 @@
             "kind": "ClusterRole",
             "apiVersion": "v1",
             "metadata": {
+                "name": "system:controller:clusterrole-aggregation-controller",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "annotations": {
+                    "authorization.openshift.io/system-only": "true",
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "rules": [
+                {
+                    "verbs": [
+                        "*"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "*"
+                    ],
+                    "resources": [
+                        "*"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "*"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": null,
+                    "resources": [],
+                    "nonResourceURLs": [
+                        "*"
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "ClusterRole",
+            "apiVersion": "v1",
+            "metadata": {
                 "name": "system:controller:cronjob-controller",
                 "creationTimestamp": null,
                 "labels": {
@@ -6648,6 +6295,7 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "apps",
                         "extensions"
                     ],
                     "resources": [
@@ -6723,6 +6371,7 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "apps",
                         "extensions"
                     ],
                     "resources": [
@@ -6969,38 +6618,10 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
-                        ""
+                        "*"
                     ],
                     "resources": [
-                        "replicationcontrollers/scale"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "update"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "extensions"
-                    ],
-                    "resources": [
-                        "replicationcontrollers/scale"
-                    ]
-                },
-                {
-                    "verbs": [
-                        "get",
-                        "update"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        "apps",
-                        "extensions"
-                    ],
-                    "resources": [
-                        "deployments/scale",
-                        "replicasets/scale"
+                        "*/scale"
                     ]
                 },
                 {
@@ -7017,22 +6638,6 @@
                 },
                 {
                     "verbs": [
-                        "proxy"
-                    ],
-                    "attributeRestrictions": null,
-                    "apiGroups": [
-                        ""
-                    ],
-                    "resources": [
-                        "services"
-                    ],
-                    "resourceNames": [
-                        "http:heapster:",
-                        "https:heapster:"
-                    ]
-                },
-                {
-                    "verbs": [
                         "get"
                     ],
                     "attributeRestrictions": null,
@@ -7045,6 +6650,31 @@
                     "resourceNames": [
                         "http:heapster:",
                         "https:heapster:"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "list"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "metrics.k8s.io"
+                    ],
+                    "resources": [
+                        "pods"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "custom.metrics.k8s.io"
+                    ],
+                    "resources": [
+                        "*"
                     ]
                 },
                 {
@@ -7530,6 +7160,7 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "apps",
                         "extensions"
                     ],
                     "resources": [
@@ -7542,6 +7173,7 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "apps",
                         "extensions"
                     ],
                     "resources": [
@@ -7554,6 +7186,7 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "apps",
                         "extensions"
                     ],
                     "resources": [
@@ -8172,7 +7805,774 @@
                         "authorization.k8s.io"
                     ],
                     "resources": [
-                        "selfsubjectaccessreviews"
+                        "selfsubjectaccessreviews",
+                        "selfsubjectrulesreviews"
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "ClusterRole",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "admin",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "annotations": {
+                    "openshift.io/description": "A user that has edit rights within the project and can change the project's membership.",
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "rules": [],
+            "aggregationRule": {
+                "clusterRoleSelectors": [
+                    {
+                        "matchLabels": {
+                            "rbac.authorization.k8s.io/aggregate-to-admin": "true"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "kind": "ClusterRole",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "edit",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "annotations": {
+                    "openshift.io/description": "A user that can create and edit most objects in a project, but can not update the project's membership.",
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "rules": [],
+            "aggregationRule": {
+                "clusterRoleSelectors": [
+                    {
+                        "matchLabels": {
+                            "rbac.authorization.k8s.io/aggregate-to-edit": "true"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "kind": "ClusterRole",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "view",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "annotations": {
+                    "openshift.io/description": "A user who can view but not edit any resources within the project. They can not view secrets or membership.",
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "rules": [],
+            "aggregationRule": {
+                "clusterRoleSelectors": [
+                    {
+                        "matchLabels": {
+                            "rbac.authorization.k8s.io/aggregate-to-view": "true"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "kind": "ClusterRole",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "system:aggregate-to-admin",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults",
+                    "rbac.authorization.k8s.io/aggregate-to-admin": "true"
+                },
+                "annotations": {
+                    "authorization.openshift.io/system-only": "true",
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "rules": [
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "pods",
+                        "pods/attach",
+                        "pods/exec",
+                        "pods/portforward",
+                        "pods/proxy"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "configmaps",
+                        "endpoints",
+                        "persistentvolumeclaims",
+                        "replicationcontrollers",
+                        "replicationcontrollers/scale",
+                        "secrets",
+                        "serviceaccounts",
+                        "services",
+                        "services/proxy"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "bindings",
+                        "events",
+                        "limitranges",
+                        "namespaces/status",
+                        "pods/log",
+                        "pods/status",
+                        "replicationcontrollers/status",
+                        "resourcequotas",
+                        "resourcequotas/status"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "namespaces"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "impersonate"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "serviceaccounts"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "apps"
+                    ],
+                    "resources": [
+                        "deployments",
+                        "deployments/rollback",
+                        "deployments/scale",
+                        "replicasets",
+                        "replicasets/scale",
+                        "statefulsets"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "apps"
+                    ],
+                    "resources": [
+                        "daemonsets"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "autoscaling"
+                    ],
+                    "resources": [
+                        "horizontalpodautoscalers"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "batch"
+                    ],
+                    "resources": [
+                        "cronjobs",
+                        "jobs"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "extensions"
+                    ],
+                    "resources": [
+                        "deployments",
+                        "deployments/rollback",
+                        "deployments/scale",
+                        "ingresses",
+                        "replicasets",
+                        "replicasets/scale",
+                        "replicationcontrollers/scale"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "extensions"
+                    ],
+                    "resources": [
+                        "daemonsets"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "policy"
+                    ],
+                    "resources": [
+                        "poddisruptionbudgets"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "authorization.k8s.io"
+                    ],
+                    "resources": [
+                        "localsubjectaccessreviews"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "rbac.authorization.k8s.io"
+                    ],
+                    "resources": [
+                        "rolebindings",
+                        "roles"
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "ClusterRole",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "system:aggregate-to-edit",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults",
+                    "rbac.authorization.k8s.io/aggregate-to-edit": "true"
+                },
+                "annotations": {
+                    "authorization.openshift.io/system-only": "true",
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "rules": [
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "pods",
+                        "pods/attach",
+                        "pods/exec",
+                        "pods/portforward",
+                        "pods/proxy"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "configmaps",
+                        "endpoints",
+                        "persistentvolumeclaims",
+                        "replicationcontrollers",
+                        "replicationcontrollers/scale",
+                        "secrets",
+                        "serviceaccounts",
+                        "services",
+                        "services/proxy"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "bindings",
+                        "events",
+                        "limitranges",
+                        "namespaces/status",
+                        "pods/log",
+                        "pods/status",
+                        "replicationcontrollers/status",
+                        "resourcequotas",
+                        "resourcequotas/status"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "namespaces"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "impersonate"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "serviceaccounts"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "apps"
+                    ],
+                    "resources": [
+                        "deployments",
+                        "deployments/rollback",
+                        "deployments/scale",
+                        "replicasets",
+                        "replicasets/scale",
+                        "statefulsets"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "apps"
+                    ],
+                    "resources": [
+                        "daemonsets"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "autoscaling"
+                    ],
+                    "resources": [
+                        "horizontalpodautoscalers"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "batch"
+                    ],
+                    "resources": [
+                        "cronjobs",
+                        "jobs"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "extensions"
+                    ],
+                    "resources": [
+                        "deployments",
+                        "deployments/rollback",
+                        "deployments/scale",
+                        "ingresses",
+                        "replicasets",
+                        "replicasets/scale",
+                        "replicationcontrollers/scale"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "extensions"
+                    ],
+                    "resources": [
+                        "daemonsets"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "delete",
+                        "deletecollection",
+                        "get",
+                        "list",
+                        "patch",
+                        "update",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "policy"
+                    ],
+                    "resources": [
+                        "poddisruptionbudgets"
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "ClusterRole",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "system:aggregate-to-view",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults",
+                    "rbac.authorization.k8s.io/aggregate-to-view": "true"
+                },
+                "annotations": {
+                    "authorization.openshift.io/system-only": "true",
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "rules": [
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "configmaps",
+                        "endpoints",
+                        "persistentvolumeclaims",
+                        "pods",
+                        "replicationcontrollers",
+                        "replicationcontrollers/scale",
+                        "serviceaccounts",
+                        "services"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "bindings",
+                        "events",
+                        "limitranges",
+                        "namespaces/status",
+                        "pods/log",
+                        "pods/status",
+                        "replicationcontrollers/status",
+                        "resourcequotas",
+                        "resourcequotas/status"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "namespaces"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "apps"
+                    ],
+                    "resources": [
+                        "daemonsets",
+                        "deployments",
+                        "deployments/scale",
+                        "replicasets",
+                        "replicasets/scale",
+                        "statefulsets"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "autoscaling"
+                    ],
+                    "resources": [
+                        "horizontalpodautoscalers"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "batch"
+                    ],
+                    "resources": [
+                        "cronjobs",
+                        "jobs"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "extensions"
+                    ],
+                    "resources": [
+                        "daemonsets",
+                        "deployments",
+                        "deployments/scale",
+                        "ingresses",
+                        "replicasets",
+                        "replicasets/scale",
+                        "replicationcontrollers/scale"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "policy"
+                    ],
+                    "resources": [
+                        "poddisruptionbudgets"
                     ]
                 }
             ]
@@ -8207,6 +8607,20 @@
                         "namespaces",
                         "nodes",
                         "pods"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "extensions"
+                    ],
+                    "resources": [
+                        "deployments"
                     ]
                 }
             ]
@@ -8552,7 +8966,21 @@
                         ""
                     ],
                     "resources": [
-                        "nodes",
+                        "nodes"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "delete",
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
                         "pods"
                     ]
                 },
@@ -8571,6 +8999,7 @@
                 },
                 {
                     "verbs": [
+                        "patch",
                         "update"
                     ],
                     "attributeRestrictions": null,
@@ -8604,6 +9033,7 @@
                     ],
                     "attributeRestrictions": null,
                     "apiGroups": [
+                        "apps",
                         "extensions"
                     ],
                     "resources": [
@@ -8622,6 +9052,20 @@
                     ],
                     "resources": [
                         "statefulsets"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "get",
+                        "list",
+                        "watch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "policy"
+                    ],
+                    "resources": [
+                        "poddisruptionbudgets"
                     ]
                 },
                 {
@@ -8668,6 +9112,108 @@
                     "resources": [
                         "endpoints",
                         "services"
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "ClusterRole",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "system:aws-cloud-provider",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "annotations": {
+                    "authorization.openshift.io/system-only": "true",
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "rules": [
+                {
+                    "verbs": [
+                        "get",
+                        "patch"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "nodes"
+                    ]
+                },
+                {
+                    "verbs": [
+                        "create",
+                        "patch",
+                        "update"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        ""
+                    ],
+                    "resources": [
+                        "events"
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "ClusterRole",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "system:certificates.k8s.io:certificatesigningrequests:nodeclient",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "annotations": {
+                    "authorization.openshift.io/system-only": "true",
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "rules": [
+                {
+                    "verbs": [
+                        "create"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "certificates.k8s.io"
+                    ],
+                    "resources": [
+                        "certificatesigningrequests/nodeclient"
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "ClusterRole",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "system:certificates.k8s.io:certificatesigningrequests:selfnodeclient",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "annotations": {
+                    "authorization.openshift.io/system-only": "true",
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "rules": [
+                {
+                    "verbs": [
+                        "create"
+                    ],
+                    "attributeRestrictions": null,
+                    "apiGroups": [
+                        "certificates.k8s.io"
+                    ],
+                    "resources": [
+                        "certificatesigningrequests/selfnodeclient"
                     ]
                 }
             ]
@@ -9190,6 +9736,34 @@
             ],
             "roleRef": {
                 "name": "system:controller:attachdetach-controller"
+            }
+        },
+        {
+            "kind": "ClusterRoleBinding",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "system:controller:clusterrole-aggregation-controller",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "annotations": {
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "userNames": [
+                "system:serviceaccount:kube-system:clusterrole-aggregation-controller"
+            ],
+            "groupNames": null,
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "namespace": "kube-system",
+                    "name": "clusterrole-aggregation-controller"
+                }
+            ],
+            "roleRef": {
+                "name": "system:controller:clusterrole-aggregation-controller"
             }
         },
         {
@@ -10503,6 +11077,34 @@
             ],
             "roleRef": {
                 "name": "system:kube-scheduler"
+            }
+        },
+        {
+            "kind": "ClusterRoleBinding",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "system:aws-cloud-provider",
+                "creationTimestamp": null,
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "annotations": {
+                    "openshift.io/reconcile-protect": "false"
+                }
+            },
+            "userNames": [
+                "system:serviceaccount:kube-system:aws-cloud-provider"
+            ],
+            "groupNames": null,
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "namespace": "kube-system",
+                    "name": "aws-cloud-provider"
+                }
+            ],
+            "roleRef": {
+                "name": "system:aws-cloud-provider"
             }
         },
         {

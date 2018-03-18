@@ -233,7 +233,7 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 		{
 			filename: "admin",
 			template: &x509.Certificate{
-				Subject:     pkix.Name{Organization: []string{"system:cluster-admins"}, CommonName: "system:admin"},
+				Subject:     pkix.Name{Organization: []string{"system:cluster-admins", "system:masters"}, CommonName: "system:admin"},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			},
 		},
@@ -309,7 +309,7 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 				DNSNames:    []string{fmt.Sprintf("*.%s.nip.io", c.ExternalRouterIP.String()), fmt.Sprintf("%s.nip.io", c.ExternalRouterIP.String())},
 			},
 		},
-		// TODO: registry cert?
+		// TODO: registry cert
 	}
 
 	for _, cert := range certs {
@@ -520,15 +520,13 @@ func (c *Config) WriteMasterCerts(fs filesystem.Filesystem, node *Node) error {
 
 // WriteNodeCerts writes the node certs
 func (c *Config) WriteNodeCerts(fs filesystem.Filesystem, node *Node) error {
-	for _, filename := range []string{"ca", "node-client-ca"} {
-		err := writeCert(fs, fmt.Sprintf("etc/origin/node/%s.crt", filename), c.cas["ca"].cert)
-		if err != nil {
-			return err
-		}
+	err := writeCert(fs, "etc/origin/node/ca.crt", c.cas["ca"].cert)
+	if err != nil {
+		return err
 	}
 
 	for filename, cert := range node.certs {
-		err := writeCert(fs, fmt.Sprintf("etc/origin/node/%s.crt", filename), cert.cert)
+		err = writeCert(fs, fmt.Sprintf("etc/origin/node/%s.crt", filename), cert.cert)
 		if err != nil {
 			return err
 		}
