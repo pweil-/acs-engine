@@ -1,17 +1,7 @@
 #!/bin/bash -x
 
-# note: this is laid down by atomic-openshift-node.service
-cat >/etc/dnsmasq.d/node-dnsmasq.conf <<'EOF'
-server=/in-addr.arpa/127.0.0.1
-server=/cluster.local/127.0.0.1
-EOF
-
-# TODO: probably shouldn't be hardcoded
-cat >/etc/dnsmasq.d/origin-upstream-dns.conf <<'EOF'
-server=168.63.129.16
-EOF
-
-systemctl restart dnsmasq.service
+# TODO: /etc/dnsmasq.d/origin-upstream-dns.conf is currently hardcoded; it
+# probably shouldn't be
 
 # TODO: remove this once we generate the registry certificate
 cat >>/etc/sysconfig/docker <<'EOF'
@@ -19,23 +9,6 @@ INSECURE_REGISTRY='--insecure-registry 172.30.0.0/16'
 EOF
 
 systemctl restart docker.service
-
-# note: for now we don't use /etc/NetworkManager/dispatcher.d/99-origin-dns.sh
-# because it insists on placing cluster.local before the internal azure domain
-# name in the search list.  This causes a deadlock at startup when the apiserver
-# tries to connect to etcd: it tries to resolve master.cluster.local against
-# dnsmasq, which tries the apiserver dns, which isn't up yet.
-# TODO: revisit this code.
-
-# ensure our image doesn't have this script
-rm -f /etc/NetworkManager/dispatcher.d/99-origin-dns.sh
-
-systemctl restart NetworkManager.service
-
-nmcli con modify eth0 ipv4.dns-search "$(dnsdomainname) cluster.local"
-nmcli con modify eth0 ipv4.dns "$(ifconfig eth0 | awk '/inet / { print $2; }')"
-
-systemctl restart NetworkManager.service
 
 cat >/etc/sysconfig/atomic-openshift-master-api <<EOF
 OPTIONS=--loglevel=2 --listen=https://0.0.0.0:8443 --master=https://$(hostname --fqdn):8443
@@ -57,8 +30,7 @@ OPENSHIFT_DEFAULT_REGISTRY=docker-registry.default.svc:5000
 # See https://docs.openshift.com/enterprise/latest/install_config/install/advanced_install.html#configuring-global-proxy
 EOF
 
-
-echo "BOOTSTRAP_CONFIG_NAME=node-config-master" >> /etc/sysconfig/atomic-openshift-node
+echo "BOOTSTRAP_CONFIG_NAME=node-config-master" >>/etc/sysconfig/atomic-openshift-node
 
 cat >/etc/sysconfig/iptables <<'EOF'
 *nat
