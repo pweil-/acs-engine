@@ -561,18 +561,5 @@
             }
         }
     ],
-    "outputs": {
-        "master-ssh": {
-            "type": "string",
-            "value": "[concat('ssh cloud-user@', reference('master-ip').ipAddress)]"
-        },
-        "infra1-ssh": {
-            "type": "string",
-            "value": "[concat('ssh cloud-user@', reference('infra1-ip').ipAddress)]"
-        },
-        "node1-ssh": {
-            "type": "string",
-            "value": "[concat('ssh cloud-user@', reference('node1-ip').ipAddress)]"
-        }
-    }
+    "outputs": {}
 }
