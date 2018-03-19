@@ -309,6 +309,13 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 				DNSNames:    []string{fmt.Sprintf("*.%s.nip.io", c.ExternalRouterIP.String()), fmt.Sprintf("%s.nip.io", c.ExternalRouterIP.String())},
 			},
 		},
+		{
+			filename: "node-bootstrapper",
+			template: &x509.Certificate{
+				Subject:     pkix.Name{CommonName: "system:serviceaccount:openshift-infra:node-bootstrapper"},
+				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+			},
+		},
 		// TODO: registry cert
 	}
 
@@ -521,6 +528,15 @@ func (c *Config) WriteMasterCerts(fs filesystem.Filesystem, node *Node) error {
 // WriteNodeCerts writes the node certs
 func (c *Config) WriteNodeCerts(fs filesystem.Filesystem, node *Node) error {
 	err := writeCert(fs, "etc/origin/node/ca.crt", c.cas["ca"].cert)
+	if err != nil {
+		return err
+	}
+
+	err = writeCert(fs, "etc/origin/node/node-bootstrapper.crt", c.Nodes[0].Master.certs["node-bootstrapper"].cert)
+	if err != nil {
+		return err
+	}
+	err = writePrivateKey(fs, "etc/origin/node/node-bootstrapper.key", c.Nodes[0].Master.certs["node-bootstrapper"].key)
 	if err != nil {
 		return err
 	}
