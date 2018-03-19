@@ -13,14 +13,7 @@ imageConfig:
 kind: NodeConfig
 kubeletArguments:
   node-labels:
-{{- if .Master }}
   - node-role.kubernetes.io/master=true
-{{- else if .Infra }}
-  - region=infra
-{{- else }}
-  - node-role.kubernetes.io/compute=true
-  - region=primary
-{{- end }}
 masterClientConnectionOverrides:
   acceptContentTypes: application/vnd.kubernetes.protobuf,application/json
   contentType: application/vnd.kubernetes.protobuf

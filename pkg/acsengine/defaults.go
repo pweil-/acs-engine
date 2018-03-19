@@ -652,12 +652,7 @@ func openShiftSetDefaultCerts(a *api.Properties) (bool, error) {
 	}
 
 	for i := range c.Nodes {
-		err := c.PrepareNodeCerts(&c.Nodes[i])
-		if err != nil {
-			return false, err
-		}
-
-		err = c.PrepareNodeKubeConfig(&c.Nodes[i])
+		err := c.PrepareNodeKubeConfig(&c.Nodes[i])
 		if err != nil {
 			return false, err
 		}
