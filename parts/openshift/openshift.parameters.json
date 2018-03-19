@@ -12,10 +12,10 @@
             "value": "Standard_D4s_v3"
         },
         "imageResourceGroup": {
-            "value": "kwoodsontest"
+            "value": "opstest"
         },
         "imageName": {
-            "value": "rhel7.4_base"
+            "value": "openshift-gi-1521224379"
         },
         "sshRSAPublicKey": {
             "value": ""

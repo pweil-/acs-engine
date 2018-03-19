@@ -602,9 +602,6 @@ func convertVLabsOpenShiftConfig(vlabs *vlabs.OpenShiftConfig, api *OpenShiftCon
 	api.RouterIP = vlabs.RouterIP
 	api.ImageResourceGroup = vlabs.ImageResourceGroup
 	api.ImageName = vlabs.ImageName
-	api.YumCert = vlabs.YumCert
-	api.YumKey = vlabs.YumKey
-	api.DockerConfig = vlabs.DockerConfig
 }
 
 func convertVLabsKubernetesConfig(vlabs *vlabs.KubernetesConfig, api *KubernetesConfig) {
@@ -655,10 +652,10 @@ func setVlabsOpenShiftDefaults(vp *vlabs.Properties, api *OrchestratorProfile) {
 		api.OpenShiftConfig.Location = "eastus"
 	}
 	if api.OpenShiftConfig.ImageResourceGroup == "" {
-		api.OpenShiftConfig.ImageResourceGroup = "kwoodsontest"
+		api.OpenShiftConfig.ImageResourceGroup = "opstest"
 	}
 	if api.OpenShiftConfig.ImageName == "" {
-		api.OpenShiftConfig.ImageName = "rhel7.4_base"
+		api.OpenShiftConfig.ImageName = "openshift-gi-1521224379"
 	}
 }
 

@@ -1641,15 +1641,9 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 			t := template.Must(template.New("master").Parse(string(tb)))
 			b := &bytes.Buffer{}
 			t.Execute(b, struct {
-				YumCert                string
-				YumKey                 string
-				DockerConfig           string
 				ConfigBundle           string
 				ExternalMasterHostname string
 			}{
-				YumCert:                cs.Properties.OrchestratorProfile.OpenShiftConfig.YumCert,
-				YumKey:                 cs.Properties.OrchestratorProfile.OpenShiftConfig.YumKey,
-				DockerConfig:           cs.Properties.OrchestratorProfile.OpenShiftConfig.DockerConfig,
 				ExternalMasterHostname: fmt.Sprintf("%s.%s.cloudapp.azure.com", cs.Properties.MasterProfile.DNSPrefix, cs.Properties.OrchestratorProfile.OpenShiftConfig.Location),
 				ConfigBundle:           base64.StdEncoding.EncodeToString(cs.Properties.OrchestratorProfile.OpenShiftConfig.ConfigBundles["master"]),
 			})
@@ -1660,14 +1654,8 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 			t := template.Must(template.New("node").Parse(string(tb)))
 			b := &bytes.Buffer{}
 			t.Execute(b, struct {
-				YumCert      string
-				YumKey       string
-				DockerConfig string
 				ConfigBundle string
 			}{
-				YumCert:      cs.Properties.OrchestratorProfile.OpenShiftConfig.YumCert,
-				YumKey:       cs.Properties.OrchestratorProfile.OpenShiftConfig.YumKey,
-				DockerConfig: cs.Properties.OrchestratorProfile.OpenShiftConfig.DockerConfig,
 				ConfigBundle: base64.StdEncoding.EncodeToString(cs.Properties.OrchestratorProfile.OpenShiftConfig.ConfigBundles[node]),
 			})
 			return b.String()
