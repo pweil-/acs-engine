@@ -113,6 +113,9 @@ for unit in etcd.service atomic-openshift-master-api.service atomic-openshift-ma
 	systemctl start $unit
 done
 
+mkdir -p /root/.kube
+cp /etc/origin/master/admin.kubeconfig /root/.kube/config
+
 export KUBECONFIG=/etc/origin/master/admin.kubeconfig
 
 while ! curl -o /dev/null -m 2 -kfs https://localhost:8443/healthz; do
@@ -158,9 +161,6 @@ for file in /usr/share/ansible/openshift-ansible/roles/openshift_examples/files/
 	  /usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/v3.7/xpaas-templates/*.json; do
 	oc create -n openshift -f $file
 done
-
-mkdir -p /root/.kube
-cp /etc/origin/master/admin.kubeconfig /root/.kube/config
 
 # TODO: run a CSR auto-approver
 # https://github.com/kargakis/acs-engine/issues/46
