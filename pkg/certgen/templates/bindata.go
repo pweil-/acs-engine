@@ -89,7 +89,7 @@ func masterEtcEtcdEtcdConf() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "master/etc/etcd/etcd.conf", size: 1649, mode: os.FileMode(436), modTime: time.Unix(1521309217, 0)}
+	info := bindataFileInfo{name: "master/etc/etcd/etcd.conf", size: 1649, mode: os.FileMode(436), modTime: time.Unix(1, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -109,7 +109,7 @@ func masterEtcOriginMasterHtpasswd() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "master/etc/origin/master/htpasswd", size: 43, mode: os.FileMode(436), modTime: time.Unix(1521251033, 0)}
+	info := bindataFileInfo{name: "master/etc/origin/master/htpasswd", size: 43, mode: os.FileMode(436), modTime: time.Unix(1, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -129,7 +129,7 @@ func masterEtcOriginMasterMasterConfigYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "master/etc/origin/master/master-config.yaml", size: 5926, mode: os.FileMode(436), modTime: time.Unix(1521349113, 0)}
+	info := bindataFileInfo{name: "master/etc/origin/master/master-config.yaml", size: 5926, mode: os.FileMode(436), modTime: time.Unix(1, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -149,7 +149,7 @@ func masterEtcOriginMasterPolicyJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "master/etc/origin/master/policy.json", size: 374453, mode: os.FileMode(436), modTime: time.Unix(1521347275, 0)}
+	info := bindataFileInfo{name: "master/etc/origin/master/policy.json", size: 374453, mode: os.FileMode(436), modTime: time.Unix(1, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -169,7 +169,7 @@ func masterEtcOriginMasterSchedulerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "master/etc/origin/master/scheduler.json", size: 1893, mode: os.FileMode(436), modTime: time.Unix(1521347275, 0)}
+	info := bindataFileInfo{name: "master/etc/origin/master/scheduler.json", size: 1893, mode: os.FileMode(436), modTime: time.Unix(1, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -189,7 +189,7 @@ func masterEtcOriginMasterSessionSecretsYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "master/etc/origin/master/session-secrets.yaml", size: 116, mode: os.FileMode(436), modTime: time.Unix(1521251033, 0)}
+	info := bindataFileInfo{name: "master/etc/origin/master/session-secrets.yaml", size: 116, mode: os.FileMode(436), modTime: time.Unix(1, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -209,7 +209,7 @@ func nodeEtcOriginNodeNodeConfigYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "node/etc/origin/node/node-config.yaml", size: 1380, mode: os.FileMode(436), modTime: time.Unix(1521467686, 0)}
+	info := bindataFileInfo{name: "node/etc/origin/node/node-config.yaml", size: 1380, mode: os.FileMode(436), modTime: time.Unix(1, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -229,7 +229,7 @@ func nodeEtcOriginNodeNodeDnsmasqConf() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "node/etc/origin/node/node-dnsmasq.conf", size: 63, mode: os.FileMode(436), modTime: time.Unix(1521251033, 0)}
+	info := bindataFileInfo{name: "node/etc/origin/node/node-dnsmasq.conf", size: 63, mode: os.FileMode(436), modTime: time.Unix(1, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -249,7 +249,7 @@ func nodeEtcOriginNodeResolvConf() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "node/etc/origin/node/resolv.conf", size: 25, mode: os.FileMode(436), modTime: time.Unix(1521251033, 0)}
+	info := bindataFileInfo{name: "node/etc/origin/node/resolv.conf", size: 25, mode: os.FileMode(436), modTime: time.Unix(1, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
