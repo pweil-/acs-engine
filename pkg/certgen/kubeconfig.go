@@ -230,7 +230,7 @@ func (c *Config) PrepareNodeKubeConfig(node *Node) error {
 	}
 
 	node.kubeconfigs = map[string]KubeConfig{
-		fmt.Sprintf("system:node:%s.kubeconfig", node.Hostname): {
+		"node.kubeconfig": {
 			APIVersion: "v1",
 			Kind:       "Config",
 			Clusters: []Cluster{

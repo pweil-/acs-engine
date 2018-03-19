@@ -58,7 +58,7 @@ OPENSHIFT_DEFAULT_REGISTRY=docker-registry.default.svc:5000
 EOF
 
 
-echo "BOOTSTRAP_CONFIG_NAME=changeme" >> /etc/sysconfig/atomic-openshift-node
+echo "BOOTSTRAP_CONFIG_NAME=node-config-master" >> /etc/sysconfig/atomic-openshift-node
 
 cat >/etc/sysconfig/iptables <<'EOF'
 *nat
@@ -191,6 +191,11 @@ done
 while ! oc get svc kubernetes &>/dev/null; do
 	sleep 1
 done
+
+
+oc create configmap node-config-master --namespace openshift-node --from-file=/etc/origin/node/node-config.yaml
+oc create configmap node-config-compute --namespace openshift-node --from-file=node-config.yaml=/etc/origin/node/compute-config.yaml
+oc create configmap node-config-infra --namespace openshift-node --from-file=node-config.yaml=/etc/origin/node/infra-config.yaml
 
 # TODO: do this, and more (registry console, service catalog, tsb, asb), the proper way
 

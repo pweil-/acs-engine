@@ -1655,8 +1655,10 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 			b := &bytes.Buffer{}
 			t.Execute(b, struct {
 				ConfigBundle string
+				IsInfra      bool
 			}{
 				ConfigBundle: base64.StdEncoding.EncodeToString(cs.Properties.OrchestratorProfile.OpenShiftConfig.ConfigBundles[node]),
+				IsInfra:      cs.Properties.OrchestratorProfile.OpenShiftConfig.InfraNodes[node],
 			})
 			return b.String()
 		},

@@ -666,6 +666,9 @@ func openShiftSetDefaultCerts(a *api.Properties) (bool, error) {
 	if a.OrchestratorProfile.OpenShiftConfig.ConfigBundles == nil {
 		a.OrchestratorProfile.OpenShiftConfig.ConfigBundles = make(map[string][]byte)
 	}
+	if a.OrchestratorProfile.OpenShiftConfig.InfraNodes == nil {
+		a.OrchestratorProfile.OpenShiftConfig.InfraNodes = make(map[string]bool)
+	}
 
 	for i, node := range c.Nodes {
 		b := &bytes.Buffer{}
@@ -685,6 +688,7 @@ func openShiftSetDefaultCerts(a *api.Properties) (bool, error) {
 			return false, err
 		}
 
+		a.OrchestratorProfile.OpenShiftConfig.InfraNodes[node.Hostname] = node.Infra
 		a.OrchestratorProfile.OpenShiftConfig.ConfigBundles[node.Hostname] = b.Bytes()
 	}
 
