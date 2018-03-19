@@ -103,7 +103,11 @@ kubernetesMasterConfig:
     - etcd3
     storage-media-type:
     - application/vnd.kubernetes.protobuf
-  controllerArguments: null
+  controllerArguments:
+    cluster-signing-cert-file:
+      - "/etc/origin/master/ca.crt"
+    cluster-signing-key-file:
+      - "/etc/origin/master/ca.key"
   masterCount: 1
   masterIP: {{ (index (index .Nodes 0).IPs 0).String }}
   podEvictionTimeout: null

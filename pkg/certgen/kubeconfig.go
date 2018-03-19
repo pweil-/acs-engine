@@ -220,6 +220,15 @@ func (c *Config) PrepareNodeKubeConfig(node *Node) error {
 		return err
 	}
 
+	bootstrapCert, err := certAsBytes(c.Nodes[0].Master.certs["node-bootstrapper"].cert)
+	if err != nil {
+		return err
+	}
+	bootstrapKey, err := privateKeyAsBytes(c.Nodes[0].Master.certs["node-bootstrapper"].key)
+	if err != nil {
+		return err
+	}
+
 	node.kubeconfigs = map[string]KubeConfig{
 		fmt.Sprintf("system:node:%s.kubeconfig", node.Hostname): {
 			APIVersion: "v1",
@@ -250,6 +259,39 @@ func (c *Config) PrepareNodeKubeConfig(node *Node) error {
 					User: UserInfo{
 						ClientCertificateData: base64.StdEncoding.EncodeToString(masterclientcert),
 						ClientKeyData:         base64.StdEncoding.EncodeToString(masterclientkey),
+					},
+				},
+			},
+		},
+		"bootstrap.kubeconfig": {
+			APIVersion: "v1",
+			Kind:       "Config",
+			Clusters: []Cluster{
+				{
+					Name: epName,
+					Cluster: ClusterInfo{
+						Server: fmt.Sprintf("https://%s", ep),
+						CertificateAuthorityData: base64.StdEncoding.EncodeToString(cacert),
+					},
+				},
+			},
+			Contexts: []Context{
+				{
+					Name: fmt.Sprintf("default/%s/system:serviceaccount:openshift-infra:node-bootstrapper", epName),
+					Context: ContextInfo{
+						Cluster:   epName,
+						Namespace: "default",
+						User:      fmt.Sprintf("system:serviceaccount:openshift-infra:node-bootstrapper/%s", epName),
+					},
+				},
+			},
+			CurrentContext: fmt.Sprintf("default/%s/system:serviceaccount:openshift-infra:node-bootstrapper", epName),
+			Users: []User{
+				{
+					Name: fmt.Sprintf("system:serviceaccount:openshift-infra:node-bootstrapper/%s", epName),
+					User: UserInfo{
+						ClientCertificateData: base64.StdEncoding.EncodeToString(bootstrapCert),
+						ClientKeyData:         base64.StdEncoding.EncodeToString(bootstrapKey),
 					},
 				},
 			},
