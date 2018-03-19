@@ -283,9 +283,6 @@ type OpenShiftConfig struct {
 	RouterIP           string `json:"routerip,omitempty"`
 	ImageResourceGroup string `json:"imageResourceGroup,omitempty"`
 	ImageName          string `json:"imageName,omitempty"`
-	YumCert            string `json:"yumCert,omitempty"`
-	YumKey             string `json:"yumKey,omitempty"`
-	DockerConfig       string `json:"dockerConfig,omitempty"`
 }
 
 // MasterProfile represents the definition of the master cluster
