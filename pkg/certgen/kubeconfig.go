@@ -211,14 +211,6 @@ func (c *Config) PrepareNodeKubeConfig(node *Node) error {
 	if err != nil {
 		return err
 	}
-	masterclientcert, err := certAsBytes(node.certs[fmt.Sprintf("system:node:%s", node.Hostname)].cert)
-	if err != nil {
-		return err
-	}
-	masterclientkey, err := privateKeyAsBytes(node.certs[fmt.Sprintf("system:node:%s", node.Hostname)].key)
-	if err != nil {
-		return err
-	}
 
 	bootstrapCert, err := certAsBytes(c.Nodes[0].Master.certs["node-bootstrapper"].cert)
 	if err != nil {
@@ -230,39 +222,6 @@ func (c *Config) PrepareNodeKubeConfig(node *Node) error {
 	}
 
 	node.kubeconfigs = map[string]KubeConfig{
-		"node.kubeconfig": {
-			APIVersion: "v1",
-			Kind:       "Config",
-			Clusters: []Cluster{
-				{
-					Name: epName,
-					Cluster: ClusterInfo{
-						Server: fmt.Sprintf("https://%s", ep),
-						CertificateAuthorityData: base64.StdEncoding.EncodeToString(cacert),
-					},
-				},
-			},
-			Contexts: []Context{
-				{
-					Name: fmt.Sprintf("default/%s/system:node:%s", epName, node.Hostname),
-					Context: ContextInfo{
-						Cluster:   epName,
-						Namespace: "default",
-						User:      fmt.Sprintf("system:node:%s/%s", node.Hostname, epName),
-					},
-				},
-			},
-			CurrentContext: fmt.Sprintf("default/%s/system:node:%s", epName, node.Hostname),
-			Users: []User{
-				{
-					Name: fmt.Sprintf("system:node:%s/%s", node.Hostname, epName),
-					User: UserInfo{
-						ClientCertificateData: base64.StdEncoding.EncodeToString(masterclientcert),
-						ClientKeyData:         base64.StdEncoding.EncodeToString(masterclientkey),
-					},
-				},
-			},
-		},
 		"bootstrap.kubeconfig": {
 			APIVersion: "v1",
 			Kind:       "Config",

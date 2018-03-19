@@ -395,70 +395,6 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 	return nil
 }
 
-// PrepareNodeCerts creates the node certs
-func (c *Config) PrepareNodeCerts(node *Node) error {
-	if node.certs == nil {
-		node.certs = map[string]CertAndKey{}
-	}
-
-	dns := []string{node.Hostname}
-	for _, ip := range node.IPs {
-		dns = append(dns, ip.String())
-	}
-
-	now := time.Now()
-
-	certs := []struct {
-		filename string
-		template *x509.Certificate
-		signer   string
-	}{
-		{
-			filename: "server",
-			template: &x509.Certificate{
-				Subject:     pkix.Name{CommonName: node.IPs[0].String()},
-				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-				DNSNames:    dns,
-				IPAddresses: node.IPs,
-			},
-		},
-		{
-			filename: fmt.Sprintf("system:node:%s", node.Hostname),
-			template: &x509.Certificate{
-				Subject:     pkix.Name{Organization: []string{"system:nodes"}, CommonName: fmt.Sprintf("system:node:%s", node.Hostname)},
-				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
-			},
-		},
-	}
-
-	for _, cert := range certs {
-		template := &x509.Certificate{
-			SerialNumber:          c.serial.Get(),
-			NotBefore:             now,
-			NotAfter:              now.AddDate(2, 0, 0),
-			KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
-			BasicConstraintsValid: true,
-		}
-		template.Subject = cert.template.Subject
-		template.ExtKeyUsage = cert.template.ExtKeyUsage
-		template.IPAddresses = cert.template.IPAddresses
-		template.DNSNames = cert.template.DNSNames
-
-		if cert.signer == "" {
-			cert.signer = "ca"
-		}
-
-		certAndKey, err := newCertAndKey(cert.filename, template, c.cas[cert.signer].cert, c.cas[cert.signer].key, false, false)
-		if err != nil {
-			return err
-		}
-
-		node.certs[cert.filename] = certAndKey
-	}
-
-	return nil
-}
-
 // WriteMasterCerts writes the master certs
 func (c *Config) WriteMasterCerts(fs filesystem.Filesystem, node *Node) error {
 	for filename, ca := range c.cas {
@@ -539,18 +475,6 @@ func (c *Config) WriteNodeCerts(fs filesystem.Filesystem, node *Node) error {
 	err = writePrivateKey(fs, "etc/origin/node/node-bootstrapper.key", c.Nodes[0].Master.certs["node-bootstrapper"].key)
 	if err != nil {
 		return err
-	}
-
-	for filename, cert := range node.certs {
-		err = writeCert(fs, fmt.Sprintf("etc/origin/node/%s.crt", filename), cert.cert)
-		if err != nil {
-			return err
-		}
-
-		err = writePrivateKey(fs, fmt.Sprintf("etc/origin/node/%s.key", filename), cert.key)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil

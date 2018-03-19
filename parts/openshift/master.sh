@@ -193,9 +193,9 @@ while ! oc get svc kubernetes &>/dev/null; do
 done
 
 
-oc create configmap node-config-master --namespace openshift-node --from-file=/etc/origin/node/node-config.yaml
-oc create configmap node-config-compute --namespace openshift-node --from-file=node-config.yaml=/etc/origin/node/compute-config.yaml
-oc create configmap node-config-infra --namespace openshift-node --from-file=node-config.yaml=/etc/origin/node/infra-config.yaml
+oc create configmap node-config-master --namespace openshift-node --from-file=node-config.yaml=/tmp/bootstrapconfigs/master-config.yaml
+oc create configmap node-config-compute --namespace openshift-node --from-file=node-config.yaml=/tmp/bootstrapconfigs/compute-config.yaml
+oc create configmap node-config-infra --namespace openshift-node --from-file=node-config.yaml=/tmp/bootstrapconfigs/infra-config.yaml
 
 # TODO: do this, and more (registry console, service catalog, tsb, asb), the proper way
 
