@@ -97,6 +97,8 @@ EOF
 
 rm -rf /etc/etcd/* /etc/origin/master/* /etc/origin/node/*
 
+oc adm create-bootstrap-policy-file --filename=/etc/origin/master/policy.json
+
 ( cd / && base64 -d <<< {{ .ConfigBundle }} | tar -xz)
 
 chown -R etcd:etcd /etc/etcd
