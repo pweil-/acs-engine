@@ -172,7 +172,7 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 				OpenShiftConfig: &OpenShiftConfig{
 					Location:           "eastus",
 					ImageResourceGroup: "opstest",
-					ImageName:          "openshift-gi-1521224379",
+					ImageName:          "openshift-gi-1521492088",
 				},
 			},
 		},

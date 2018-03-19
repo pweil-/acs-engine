@@ -10,26 +10,6 @@ EOF
 
 systemctl restart docker.service
 
-cat >/etc/sysconfig/atomic-openshift-master-api <<EOF
-OPTIONS=--loglevel=2 --listen=https://0.0.0.0:8443 --master=https://$(hostname --fqdn):8443
-CONFIG_FILE=/etc/origin/master/master-config.yaml
-OPENSHIFT_DEFAULT_REGISTRY=docker-registry.default.svc:5000
-
-
-# Proxy configuration
-# See https://docs.openshift.com/enterprise/latest/install_config/install/advanced_install.html#configuring-global-proxy
-EOF
-
-cat >/etc/sysconfig/atomic-openshift-master-controllers <<'EOF'
-OPTIONS=--loglevel=2 --listen=https://0.0.0.0:8444
-CONFIG_FILE=/etc/origin/master/master-config.yaml
-OPENSHIFT_DEFAULT_REGISTRY=docker-registry.default.svc:5000
-
-
-# Proxy configuration
-# See https://docs.openshift.com/enterprise/latest/install_config/install/advanced_install.html#configuring-global-proxy
-EOF
-
 echo "BOOTSTRAP_CONFIG_NAME=node-config-master" >>/etc/sysconfig/atomic-openshift-node
 
 for dst in tcp,2379 tcp,2380 tcp,8443 tcp,8444 tcp,8053 udp,8053 tcp,9090; do
@@ -40,60 +20,7 @@ done
 
 iptables-save >/etc/sysconfig/iptables
 
-systemctl mask atomic-openshift-master.service
-
-cat >/usr/lib/systemd/system/atomic-openshift-master-api.service <<'EOF'
-[Unit]
-Description=Atomic OpenShift Master API
-Documentation=https://github.com/openshift/origin
-After=network-online.target
-After=etcd.service
-After=chronyd.service
-After=ntpd.service
-Before=atomic-openshift-node.service
-Requires=network-online.target
-
-[Service]
-Type=notify
-EnvironmentFile=/etc/sysconfig/atomic-openshift-master-api
-Environment=GOTRACEBACK=crash
-ExecStart=/usr/bin/openshift start master api --config=${CONFIG_FILE} $OPTIONS
-LimitNOFILE=131072
-LimitCORE=infinity
-WorkingDirectory=/var/lib/origin
-SyslogIdentifier=atomic-openshift-master-api
-Restart=always
-RestartSec=5s
-
-[Install]
-WantedBy=multi-user.target
-WantedBy=atomic-openshift-node.service
-EOF
-
-cat >/usr/lib/systemd/system/atomic-openshift-master-controllers.service <<'EOF'
-[Unit]
-Description=Atomic OpenShift Master Controllers
-Documentation=https://github.com/openshift/origin
-After=network-online.target
-After=atomic-openshift-master-api.service
-Wants=atomic-openshift-master-api.service
-Requires=network-online.target
-
-[Service]
-Type=notify
-EnvironmentFile=/etc/sysconfig/atomic-openshift-master-controllers
-Environment=GOTRACEBACK=crash
-ExecStart=/usr/bin/openshift start master controllers --config=${CONFIG_FILE} $OPTIONS
-LimitNOFILE=131072
-LimitCORE=infinity
-WorkingDirectory=/var/lib/origin
-SyslogIdentifier=atomic-openshift-master-controllers
-Restart=always
-RestartSec=5s
-
-[Install]
-WantedBy=multi-user.target
-EOF
+sed -i -e "s#--master=.*#--master=https://$(hostname --fqdn):8443#" /etc/sysconfig/atomic-openshift-master-api
 
 rm -rf /etc/etcd/* /etc/origin/master/* /etc/origin/node/*
 

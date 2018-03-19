@@ -655,7 +655,7 @@ func setVlabsOpenShiftDefaults(vp *vlabs.Properties, api *OrchestratorProfile) {
 		api.OpenShiftConfig.ImageResourceGroup = "opstest"
 	}
 	if api.OpenShiftConfig.ImageName == "" {
-		api.OpenShiftConfig.ImageName = "openshift-gi-1521224379"
+		api.OpenShiftConfig.ImageName = "openshift-gi-1521492088"
 	}
 }
 
