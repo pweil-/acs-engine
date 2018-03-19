@@ -132,7 +132,7 @@ func (o *OrchestratorProfile) Validate(isUpdate bool) error {
 				}
 			}
 		case OpenShift:
-			// TODO: add appropriate additional validatation logic
+			// TODO: add appropriate additional validation logic
 			version := common.RationalizeReleaseAndVersion(
 				o.OrchestratorType,
 				o.OrchestratorRelease,
