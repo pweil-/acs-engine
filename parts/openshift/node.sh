@@ -37,7 +37,12 @@ nmcli con modify eth0 ipv4.dns "$(ifconfig eth0 | awk '/inet / { print $2; }')"
 
 systemctl restart NetworkManager.service
 
-echo "BOOTSTRAP_CONFIG_NAME=changeme" >> /etc/sysconfig/atomic-openshift-node
+{{- if .IsInfra }}
+echo "BOOTSTRAP_CONFIG_NAME=node-config-infra" >> /etc/sysconfig/atomic-openshift-node
+{{ else }}
+echo "BOOTSTRAP_CONFIG_NAME=node-config-compute" >> /etc/sysconfig/atomic-openshift-node
+{{- end }}
+
 
 rm -rf /etc/etcd/* /etc/origin/master/* /etc/origin/node/*
 
