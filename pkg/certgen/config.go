@@ -7,9 +7,10 @@ import (
 	"net"
 	"sync"
 
-	"github.com/jim-minter/certgen/pkg/filesystem"
+	"github.com/Azure/acs-engine/pkg/filesystem"
 )
 
+// Config represents an OpenShift configuration
 type Config struct {
 	Nodes                  []Node
 	ExternalRouterIP       net.IP
@@ -25,19 +26,23 @@ type openShiftConfig struct {
 	kubeconfigs map[string]KubeConfig
 }
 
+// Node represents an OpenShift node configuration
 type Node struct {
 	Hostname string
 	IPs      []net.IP
 	Master   *Master
+	Infra    bool
 	openShiftConfig
 }
 
+// Master represents an OpenShift master configuration
 type Master struct {
 	Port int16
 	openShiftConfig
 	etcdcerts map[string]CertAndKey
 }
 
+// CertAndKey is a certificate and key
 type CertAndKey struct {
 	cert *x509.Certificate
 	key  *rsa.PrivateKey
@@ -80,6 +85,7 @@ func (c *Config) writeMaster(fs filesystem.Filesystem, node *Node) error {
 	return nil
 }
 
+// WriteNode writes the config for a single node to a Filesystem
 func (c *Config) WriteNode(fs filesystem.Filesystem, node *Node) error {
 	if node.Master != nil {
 		err := c.writeMaster(fs, node)

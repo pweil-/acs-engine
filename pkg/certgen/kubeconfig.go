@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jim-minter/certgen/pkg/filesystem"
+	"github.com/Azure/acs-engine/pkg/filesystem"
 	"gopkg.in/yaml.v2"
 )
 
+// KubeConfig represents a kubeconfig
 type KubeConfig struct {
 	APIVersion     string                 `yaml:"apiVersion,omitempty"`
 	Kind           string                 `yaml:"kind,omitempty"`
@@ -19,37 +20,44 @@ type KubeConfig struct {
 	Users          []User                 `yaml:"users,omitempty"`
 }
 
+// Cluster represents a kubeconfig cluster
 type Cluster struct {
 	Name    string      `yaml:"name,omitempty"`
 	Cluster ClusterInfo `yaml:"cluster,omitempty"`
 }
 
+// ClusterInfo represents a kubeconfig clusterinfo
 type ClusterInfo struct {
 	Server                   string `yaml:"server,omitempty"`
 	CertificateAuthorityData string `yaml:"certificate-authority-data,omitempty"`
 }
 
+// Context represents a kubeconfig context
 type Context struct {
 	Name    string      `yaml:"name,omitempty"`
 	Context ContextInfo `yaml:"context,omitempty"`
 }
 
+// ContextInfo represents a kubeconfig contextinfo
 type ContextInfo struct {
 	Cluster   string `yaml:"cluster,omitempty"`
 	Namespace string `yaml:"namespace,omitempty"`
 	User      string `yaml:"user,omitempty"`
 }
 
+// User represents a kubeconfig user
 type User struct {
 	Name string   `yaml:"name,omitempty"`
 	User UserInfo `yaml:"user,omitempty"`
 }
 
+// UserInfo represents a kubeconfig userinfo
 type UserInfo struct {
 	ClientCertificateData string `yaml:"client-certificate-data,omitempty"`
 	ClientKeyData         string `yaml:"client-key-data,omitempty"`
 }
 
+// PrepareMasterKubeConfigs creates the master kubeconfigs
 func (c *Config) PrepareMasterKubeConfigs(node *Node) error {
 	endpoint := fmt.Sprintf("%s:%d", node.Hostname, node.Master.Port)
 	endpointName := strings.Replace(endpoint, ".", "-", -1)
@@ -90,7 +98,7 @@ func (c *Config) PrepareMasterKubeConfigs(node *Node) error {
 	}
 
 	node.Master.kubeconfigs = map[string]KubeConfig{
-		"admin.kubeconfig": KubeConfig{
+		"admin.kubeconfig": {
 			APIVersion: "v1",
 			Kind:       "Config",
 			Clusters: []Cluster{
@@ -123,7 +131,7 @@ func (c *Config) PrepareMasterKubeConfigs(node *Node) error {
 				},
 			},
 		},
-		"aggregator-front-proxy.kubeconfig": KubeConfig{
+		"aggregator-front-proxy.kubeconfig": {
 			APIVersion: "v1",
 			Kind:       "Config",
 			Clusters: []Cluster{
@@ -156,7 +164,7 @@ func (c *Config) PrepareMasterKubeConfigs(node *Node) error {
 				},
 			},
 		},
-		"openshift-master.kubeconfig": KubeConfig{
+		"openshift-master.kubeconfig": {
 			APIVersion: "v1",
 			Kind:       "Config",
 			Clusters: []Cluster{
@@ -194,6 +202,7 @@ func (c *Config) PrepareMasterKubeConfigs(node *Node) error {
 	return nil
 }
 
+// PrepareNodeKubeConfig creates the node kubeconfig
 func (c *Config) PrepareNodeKubeConfig(node *Node) error {
 	ep := fmt.Sprintf("%s:%d", c.ExternalMasterHostname, c.Nodes[0].Master.Port)
 	epName := strings.Replace(ep, ".", "-", -1)
@@ -212,7 +221,7 @@ func (c *Config) PrepareNodeKubeConfig(node *Node) error {
 	}
 
 	node.kubeconfigs = map[string]KubeConfig{
-		fmt.Sprintf("system:node:%s.kubeconfig", node.Hostname): KubeConfig{
+		fmt.Sprintf("system:node:%s.kubeconfig", node.Hostname): {
 			APIVersion: "v1",
 			Kind:       "Config",
 			Clusters: []Cluster{
@@ -250,6 +259,7 @@ func (c *Config) PrepareNodeKubeConfig(node *Node) error {
 	return nil
 }
 
+// WriteMasterKubeConfigs writes the master kubeconfigs
 func (c *Config) WriteMasterKubeConfigs(fs filesystem.Filesystem, node *Node) error {
 	for filename, kubeconfig := range node.Master.kubeconfigs {
 		b, err := yaml.Marshal(&kubeconfig)
@@ -265,6 +275,7 @@ func (c *Config) WriteMasterKubeConfigs(fs filesystem.Filesystem, node *Node) er
 	return nil
 }
 
+// WriteNodeKubeConfig writes the node kubeconfig
 func (c *Config) WriteNodeKubeConfig(fs filesystem.Filesystem, node *Node) error {
 	for filename, kubeconfig := range node.kubeconfigs {
 		b, err := yaml.Marshal(&kubeconfig)

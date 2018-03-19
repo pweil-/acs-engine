@@ -14,10 +14,10 @@ import (
 	"net"
 	"time"
 
-	"github.com/jim-minter/certgen/pkg/filesystem"
+	"github.com/Azure/acs-engine/pkg/filesystem"
 )
 
-type authKeyId struct {
+type authKeyID struct {
 	KeyIdentifier             []byte      `asn1:"optional,tag:0"`
 	AuthorityCertIssuer       generalName `asn1:"optional,tag:1"`
 	AuthorityCertSerialNumber *big.Int    `asn1:"optional,tag:2"`
@@ -50,7 +50,7 @@ func newCertAndKey(filename string, template, signingcert *x509.Certificate, sig
 			Id: []int{2, 5, 29, 35},
 		}
 		var err error
-		ext.Value, err = asn1.Marshal(authKeyId{
+		ext.Value, err = asn1.Marshal(authKeyID{
 			AuthorityCertIssuer:       generalName{DirectoryName: signingcert.Subject.ToRDNSequence()},
 			AuthorityCertSerialNumber: signingcert.SerialNumber,
 		})
@@ -67,7 +67,7 @@ func newCertAndKey(filename string, template, signingcert *x509.Certificate, sig
 			Id: []int{2, 5, 29, 35},
 		}
 		var err error
-		ext.Value, err = asn1.Marshal(authKeyId{
+		ext.Value, err = asn1.Marshal(authKeyID{
 			KeyIdentifier:             intsha1(signingkey.N),
 			AuthorityCertIssuer:       generalName{DirectoryName: signingcert.Subject.ToRDNSequence()},
 			AuthorityCertSerialNumber: signingcert.SerialNumber,
@@ -147,6 +147,7 @@ func writePublicKey(fs filesystem.Filesystem, filename string, key *rsa.PublicKe
 	return fs.WriteFile(filename, buf.Bytes(), 0666)
 }
 
+// PrepareMasterCerts creates the master certs
 func (c *Config) PrepareMasterCerts(node *Node) error {
 	if c.cas == nil {
 		c.cas = map[string]CertAndKey{}
@@ -232,7 +233,7 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 		{
 			filename: "admin",
 			template: &x509.Certificate{
-				Subject:     pkix.Name{Organization: []string{"system:cluster-admins"}, CommonName: "system:admin"},
+				Subject:     pkix.Name{Organization: []string{"system:cluster-admins", "system:masters"}, CommonName: "system:admin"},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			},
 		},
@@ -308,7 +309,7 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 				DNSNames:    []string{fmt.Sprintf("*.%s.nip.io", c.ExternalRouterIP.String()), fmt.Sprintf("%s.nip.io", c.ExternalRouterIP.String())},
 			},
 		},
-		// TODO: registry cert?
+		// TODO: registry cert
 	}
 
 	for _, cert := range certs {
@@ -387,6 +388,7 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 	return nil
 }
 
+// PrepareNodeCerts creates the node certs
 func (c *Config) PrepareNodeCerts(node *Node) error {
 	if node.certs == nil {
 		node.certs = map[string]CertAndKey{}
@@ -450,6 +452,7 @@ func (c *Config) PrepareNodeCerts(node *Node) error {
 	return nil
 }
 
+// WriteMasterCerts writes the master certs
 func (c *Config) WriteMasterCerts(fs filesystem.Filesystem, node *Node) error {
 	for filename, ca := range c.cas {
 		err := writeCert(fs, fmt.Sprintf("etc/origin/master/%s.crt", filename), ca.cert)
@@ -515,16 +518,15 @@ func (c *Config) WriteMasterCerts(fs filesystem.Filesystem, node *Node) error {
 	return nil
 }
 
+// WriteNodeCerts writes the node certs
 func (c *Config) WriteNodeCerts(fs filesystem.Filesystem, node *Node) error {
-	for _, filename := range []string{"ca", "node-client-ca"} {
-		err := writeCert(fs, fmt.Sprintf("etc/origin/node/%s.crt", filename), c.cas["ca"].cert)
-		if err != nil {
-			return err
-		}
+	err := writeCert(fs, "etc/origin/node/ca.crt", c.cas["ca"].cert)
+	if err != nil {
+		return err
 	}
 
 	for filename, cert := range node.certs {
-		err := writeCert(fs, fmt.Sprintf("etc/origin/node/%s.crt", filename), cert.cert)
+		err = writeCert(fs, fmt.Sprintf("etc/origin/node/%s.crt", filename), cert.cert)
 		if err != nil {
 			return err
 		}
@@ -538,6 +540,7 @@ func (c *Config) WriteNodeCerts(fs filesystem.Filesystem, node *Node) error {
 	return nil
 }
 
+// WriteMasterKeypair writes the master service account keypair
 func (c *Config) WriteMasterKeypair(fs filesystem.Filesystem, node *Node) error {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {

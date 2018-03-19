@@ -38,20 +38,6 @@ aggregatorConfig:
 apiLevels:
 - v1
 apiVersion: v1
-assetConfig:
-  extensionScripts:
-  - /etc/origin/master/openshift-ansible-catalog-console.js
-  logoutURL: ""
-  masterPublicURL: https://{{ .ExternalMasterHostname }}:{{ (index .Nodes 0).Master.Port }}
-  publicURL: https://{{ .ExternalMasterHostname }}:{{ (index .Nodes 0).Master.Port }}/console/
-  servingInfo:
-    bindAddress: 0.0.0.0:{{ (index .Nodes 0).Master.Port }}
-    bindNetwork: tcp4
-    certFile: master.server.crt
-    clientCA: ""
-    keyFile: master.server.key
-    maxRequestsInFlight: 0
-    requestTimeoutSeconds: 0
 authConfig:
   requestHeader:
     clientCA: front-proxy-ca.crt
@@ -75,16 +61,16 @@ corsAllowedOrigins:
 - (?i)//127\.0\.0\.1(:|\z)
 - (?i)//localhost(:|\z)
 - (?i)//{{ QuoteMeta (index (index .Nodes 0).IPs 0).String }}(:|\z)
-- (?i)//{{ QuoteMeta (index .Nodes 0).Hostname }}(:|\z)
 - (?i)//kubernetes\.default(:|\z)
 - (?i)//kubernetes\.default\.svc\.cluster\.local(:|\z)
 - (?i)//kubernetes(:|\z)
+- (?i)//{{ QuoteMeta .ExternalMasterHostname }}(:|\z)
 - (?i)//openshift\.default(:|\z)
+- (?i)//{{ QuoteMeta (index .Nodes 0).Hostname }}(:|\z)
 - (?i)//openshift\.default\.svc(:|\z)
 - (?i)//kubernetes\.default\.svc(:|\z)
 - (?i)//172\.30\.0\.1(:|\z)
 - (?i)//openshift\.default\.svc\.cluster\.local(:|\z)
-- (?i)//{{ QuoteMeta .ExternalMasterHostname }}(:|\z)
 - (?i)//openshift(:|\z)
 dnsConfig:
   bindAddress: 0.0.0.0:8053
@@ -101,7 +87,7 @@ etcdStorageConfig:
   openShiftStoragePrefix: openshift.io
   openShiftStorageVersion: v1
 imageConfig:
-  format: openshift3/ose-${component}:${version}
+  format: registry.reg-aws.openshift.com:443/openshift3/ose-${component}:${version}
   latest: false
 kind: MasterConfig
 kubeletClientInfo:
@@ -111,30 +97,22 @@ kubeletClientInfo:
   port: 10250
 kubernetesMasterConfig:
   apiServerArguments:
-#    cloud-config:
-#    - /etc/azure/azure.conf
-#    cloud-provider:
-#    - azure
     runtime-config:
     - apis/settings.k8s.io/v1alpha1=true
     storage-backend:
     - etcd3
     storage-media-type:
     - application/vnd.kubernetes.protobuf
-  controllerArguments:
-#    cloud-config:
-#    - /etc/azure/azure.conf
-#    cloud-provider:
-#    - azure
+  controllerArguments: null
   masterCount: 1
   masterIP: {{ (index (index .Nodes 0).IPs 0).String }}
-  podEvictionTimeout:
+  podEvictionTimeout: null
   proxyClientInfo:
     certFile: master.proxy-client.crt
     keyFile: master.proxy-client.key
-  schedulerArguments:
+  schedulerArguments: null
   schedulerConfigFile: /etc/origin/master/scheduler.json
-  servicesNodePortRange: ""
+  servicesNodePortRange: ''
   servicesSubnet: 172.30.0.0/16
   staticNodeNames: []
 masterClients:
@@ -143,7 +121,7 @@ masterClients:
     burst: 400
     contentType: application/vnd.kubernetes.protobuf
     qps: 200
-  externalKubernetesKubeConfig: ""
+  externalKubernetesKubeConfig: ''
   openshiftLoopbackClientConnectionOverrides:
     acceptContentTypes: application/vnd.kubernetes.protobuf,application/json
     burst: 600
@@ -159,7 +137,7 @@ networkConfig:
   externalIPNetworkCIDRs:
   - 0.0.0.0/0
   hostSubnetLength: 9
-  networkPluginName: redhat/openshift-ovs-multitenant
+  networkPluginName: redhat/openshift-ovs-subnet
   serviceNetworkCIDR: 172.30.0.0/16
 oauthConfig:
   assetPublicURL: https://{{ .ExternalMasterHostname }}:{{ (index .Nodes 0).Master.Port }}/console/
@@ -182,7 +160,7 @@ oauthConfig:
     sessionName: ssn
     sessionSecretsFile: /etc/origin/master/session-secrets.yaml
   tokenConfig:
-    accessTokenMaxAgeSeconds: 2419200
+    accessTokenMaxAgeSeconds: 86400
     authorizeTokenMaxAgeSeconds: 500
 pauseControllers: false
 policyConfig:
@@ -190,9 +168,9 @@ policyConfig:
   openshiftInfrastructureNamespace: openshift-infra
   openshiftSharedResourcesNamespace: openshift
 projectConfig:
-  defaultNodeSelector: role=app
-  projectRequestMessage: ""
-  projectRequestTemplate: ""
+  defaultNodeSelector: node-role.kubernetes.io/compute=true
+  projectRequestMessage: ''
+  projectRequestTemplate: ''
   securityAllocator:
     mcsAllocatorRange: s0:/2
     mcsLabelsPerProject: 5

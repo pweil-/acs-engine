@@ -10,9 +10,9 @@ import (
 
 	"github.com/Azure/acs-engine/pkg/api"
 	"github.com/Azure/acs-engine/pkg/api/common"
+	"github.com/Azure/acs-engine/pkg/certgen"
+	"github.com/Azure/acs-engine/pkg/filesystem"
 	"github.com/Masterminds/semver"
-	"github.com/jim-minter/certgen/pkg/certgen"
-	"github.com/jim-minter/certgen/pkg/filesystem"
 )
 
 const (
@@ -609,16 +609,23 @@ func openShiftSetDefaultCerts(a *api.Properties) (bool, error) {
 			{
 				Hostname: "master",
 				IPs: []net.IP{
-					net.ParseIP("10.0.0.10"),
+					net.ParseIP("10.0.0.11"),
 				},
 				Master: &certgen.Master{
 					Port: 8443,
 				},
 			},
 			{
+				Hostname: "infra1",
+				IPs: []net.IP{
+					net.ParseIP("10.0.0.21"),
+				},
+				Infra: true,
+			},
+			{
 				Hostname: "node1",
 				IPs: []net.IP{
-					net.ParseIP("10.0.0.11"),
+					net.ParseIP("10.0.0.31"),
 				},
 			},
 		},

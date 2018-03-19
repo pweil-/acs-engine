@@ -1638,20 +1638,38 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 		},
 		"OpenShiftGetMasterSh": func() string {
 			tb := MustAsset("openshift/master.sh")
-			t, _ := template.New("master").Funcs(map[string]interface{}{
-				"Base64": base64.StdEncoding.EncodeToString,
-			}).Parse(string(tb))
+			t := template.Must(template.New("master").Parse(string(tb)))
 			b := &bytes.Buffer{}
-			t.Execute(b, cs.Properties)
+			t.Execute(b, struct {
+				YumCert                string
+				YumKey                 string
+				DockerConfig           string
+				ConfigBundle           string
+				ExternalMasterHostname string
+			}{
+				YumCert:                cs.Properties.OrchestratorProfile.OpenShiftConfig.YumCert,
+				YumKey:                 cs.Properties.OrchestratorProfile.OpenShiftConfig.YumKey,
+				DockerConfig:           cs.Properties.OrchestratorProfile.OpenShiftConfig.DockerConfig,
+				ExternalMasterHostname: fmt.Sprintf("%s.%s.cloudapp.azure.com", cs.Properties.MasterProfile.DNSPrefix, cs.Properties.OrchestratorProfile.OpenShiftConfig.Location),
+				ConfigBundle:           base64.StdEncoding.EncodeToString(cs.Properties.OrchestratorProfile.OpenShiftConfig.ConfigBundles["master"]),
+			})
 			return b.String()
 		},
-		"OpenShiftGetNodeSh": func() string {
+		"OpenShiftGetNodeSh": func(node string) string {
 			tb := MustAsset("openshift/node.sh")
-			t, _ := template.New("node").Funcs(map[string]interface{}{
-				"Base64": base64.StdEncoding.EncodeToString,
-			}).Parse(string(tb))
+			t := template.Must(template.New("node").Parse(string(tb)))
 			b := &bytes.Buffer{}
-			t.Execute(b, cs.Properties)
+			t.Execute(b, struct {
+				YumCert      string
+				YumKey       string
+				DockerConfig string
+				ConfigBundle string
+			}{
+				YumCert:      cs.Properties.OrchestratorProfile.OpenShiftConfig.YumCert,
+				YumKey:       cs.Properties.OrchestratorProfile.OpenShiftConfig.YumKey,
+				DockerConfig: cs.Properties.OrchestratorProfile.OpenShiftConfig.DockerConfig,
+				ConfigBundle: base64.StdEncoding.EncodeToString(cs.Properties.OrchestratorProfile.OpenShiftConfig.ConfigBundles[node]),
+			})
 			return b.String()
 		},
 		// inspired by http://stackoverflow.com/questions/18276173/calling-a-template-with-several-pipeline-parameters/18276968#18276968

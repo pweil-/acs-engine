@@ -4,12 +4,10 @@
     "orchestratorProfile": {
       "orchestratorType": "OpenShift",
       "openShiftConfig": {
-        "location": "",
         "routerip": "",
-        "imageResourceGroup": "",
-        "imageName": "",
         "yumCert": "",
-        "yumKey": ""
+        "yumKey": "",
+        "dockerConfig": ""
       }
     },
     "masterProfile": {

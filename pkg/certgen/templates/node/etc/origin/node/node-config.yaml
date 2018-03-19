@@ -1,50 +1,49 @@
 allowDisabledDocker: false
 apiVersion: v1
 dnsBindAddress: 127.0.0.1:53
+dnsRecursiveResolvConf: /etc/origin/node/resolv.conf
 dnsDomain: cluster.local
 dnsIP: {{ (index .IPs 0).String }}
-dnsRecursiveResolvConf: /etc/origin/node/resolv.conf
 dockerConfig:
   execHandlerName: ""
+iptablesSyncPeriod: "30s"
 imageConfig:
-  format: openshift3/ose-${component}:${version}
-  latest: false
-iptablesSyncPeriod: 30s
+  format: registry.reg-aws.openshift.com:443/openshift3/ose-${component}:${version}
+  latest: False
 kind: NodeConfig
 kubeletArguments:
-#  cloud-config:
-#  - /etc/azure/azure.conf
-#  cloud-provider:
-#  - azure
   node-labels:
-{{- if .Master}}
-  - role=master
-{{- else}}
-  - role=app
-{{- end}}
-  - logging=true
-  - zone=default
+{{- if .Master }}
+  - node-role.kubernetes.io/master=true
+{{- else if .Infra }}
+  - region=infra
+{{- else }}
+  - node-role.kubernetes.io/compute=true
+  - region=primary
+{{- end }}
 masterClientConnectionOverrides:
   acceptContentTypes: application/vnd.kubernetes.protobuf,application/json
-  burst: 200
   contentType: application/vnd.kubernetes.protobuf
+  burst: 200
   qps: 100
 masterKubeConfig: system:node:{{ .Hostname }}.kubeconfig
+networkPluginName: redhat/openshift-ovs-subnet
+# networkConfig struct introduced in origin 1.0.6 and OSE 3.0.2 which
+# deprecates networkPluginName above. The two should match.
 networkConfig:
   mtu: 1450
-  networkPluginName: redhat/openshift-ovs-multitenant
-networkPluginName: redhat/openshift-ovs-multitenant
+  networkPluginName: redhat/openshift-ovs-subnet
 nodeName: {{ .Hostname }}
 podManifestConfig:
-proxyArguments:
-  proxy-mode:
-  - iptables
 servingInfo:
   bindAddress: 0.0.0.0:10250
   certFile: server.crt
   clientCA: ca.crt
   keyFile: server.key
-#volumeConfig:
-#  localQuota:
-#    perFSGroup: 512Mi
 volumeDirectory: /var/lib/origin/openshift.local.volumes
+proxyArguments:
+  proxy-mode:
+     - iptables
+volumeConfig:
+  localQuota:
+    perFSGroup:

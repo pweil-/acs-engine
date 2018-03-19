@@ -126,10 +126,22 @@
             "apiVersion": "2017-08-01",
             "location": "[parameters('location')]",
             "properties": {
-                "publicIPAllocationMethod": "Static",
+                "publicIPAllocationMethod": "Dynamic",
                 "dnsSettings": {
                     "domainNameLabel": "[parameters('masterEndpointDNSNamePrefix')]"
                 }
+            },
+            "sku": {
+                "name": "Basic"
+            }
+        },
+        {
+            "name": "infra1-ip",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2017-08-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic"
             },
             "sku": {
                 "name": "Basic"
@@ -141,7 +153,7 @@
             "apiVersion": "2017-08-01",
             "location": "[parameters('location')]",
             "properties": {
-                "publicIPAllocationMethod": "Static"
+                "publicIPAllocationMethod": "Dynamic"
             },
             "sku": {
                 "name": "Basic"
@@ -184,7 +196,7 @@
             }
         },
         {
-            "name": "node-nsg",
+            "name": "infra-nsg",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2017-06-01",
             "location": "[parameters('location')]",
@@ -233,6 +245,29 @@
             }
         },
         {
+            "name": "node-nsg",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "default-allow-ssh",
+                        "properties": {
+                            "priority": 1000,
+                            "protocol": "Tcp",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "22"
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "name": "master-nic",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2016-09-01",
@@ -250,7 +285,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', 'vnet'), '/subnets/', 'subnet')]"
                             },
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "10.0.0.10",
+                            "privateIPAddress": "10.0.0.11",
                             "publicIpAddress": {
                                 "id": "[resourceId('Microsoft.Network/publicIpAddresses', 'master-ip')]"
                             }
@@ -259,6 +294,41 @@
                 ],
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'master-nsg')]"
+                }
+            }
+        },
+        {
+            "name": "infra1-nic",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2016-09-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "Microsoft.Network/publicIpAddresses/infra1-ip",
+                "Microsoft.Network/networkSecurityGroups/infra-nsg"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig",
+                        "properties": {
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', 'vnet'), '/subnets/', 'subnet')]"
+                            },
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "10.0.0.21",
+                            "publicIpAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', 'infra1-ip')]"
+                            },
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', 'router-lb'), '/backendAddressPools/backend')]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'infra-nsg')]"
                 }
             }
         },
@@ -280,15 +350,10 @@
                                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', 'vnet'), '/subnets/', 'subnet')]"
                             },
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "10.0.0.11",
+                            "privateIPAddress": "10.0.0.31",
                             "publicIpAddress": {
                                 "id": "[resourceId('Microsoft.Network/publicIpAddresses', 'node1-ip')]"
-                            },
-                            "loadBalancerBackendAddressPools": [
-                                {
-                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', 'router-lb'), '/backendAddressPools/backend')]"
-                                }
-                            ]
+                            }
                         }
                     }
                 ],
@@ -339,6 +404,53 @@
                     "networkInterfaces": [
                         {
                             "id": "[resourceId('Microsoft.Network/networkInterfaces', 'master-nic')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "infra1",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2017-03-30",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "Microsoft.Network/networkInterfaces/infra1-nic"
+            ],
+            "properties": {
+                "osProfile": {
+                    "computerName": "infra1",
+                    "adminUsername": "cloud-user",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "/home/cloud-user/.ssh/authorized_keys",
+                                    "keyData": "[parameters('sshRSAPublicKey')]"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('agentVMSize')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "id": "[resourceId(parameters('imageResourceGroup'), 'Microsoft.Compute/images', parameters('imageName'))]"
+                    },
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', 'infra1-nic')]"
                         }
                     ]
                 }
@@ -411,6 +523,25 @@
             }
         },
         {
+            "name": "infra1/infra1-config",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('location')]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "Microsoft.Compute/virtualMachines/infra1"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {},
+                "protectedSettings": {
+                    "script": "{{ Base64 (OpenShiftGetNodeSh "infra1") }}"
+                }
+            }
+        },
+        {
             "name": "node1/node1-config",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('location')]",
@@ -425,7 +556,7 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {},
                 "protectedSettings": {
-                    "script": "{{ Base64 OpenShiftGetNodeSh }}"
+                    "script": "{{ Base64 (OpenShiftGetNodeSh "node1") }}"
                 }
             }
         }
@@ -434,6 +565,10 @@
         "master-ssh": {
             "type": "string",
             "value": "[concat('ssh cloud-user@', reference('master-ip').ipAddress)]"
+        },
+        "infra1-ssh": {
+            "type": "string",
+            "value": "[concat('ssh cloud-user@', reference('infra1-ip').ipAddress)]"
         },
         "node1-ssh": {
             "type": "string",

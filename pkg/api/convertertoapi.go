@@ -604,6 +604,7 @@ func convertVLabsOpenShiftConfig(vlabs *vlabs.OpenShiftConfig, api *OpenShiftCon
 	api.ImageName = vlabs.ImageName
 	api.YumCert = vlabs.YumCert
 	api.YumKey = vlabs.YumKey
+	api.DockerConfig = vlabs.DockerConfig
 }
 
 func convertVLabsKubernetesConfig(vlabs *vlabs.KubernetesConfig, api *KubernetesConfig) {

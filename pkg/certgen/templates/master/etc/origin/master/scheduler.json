@@ -1,40 +1,40 @@
 {
-    "apiVersion": "v1", 
-    "kind": "Policy", 
+    "apiVersion": "v1",
+    "kind": "Policy",
     "predicates": [
         {
             "name": "NoVolumeZoneConflict"
-        }, 
+        },
         {
             "name": "MaxEBSVolumeCount"
-        }, 
+        },
         {
             "name": "MaxGCEPDVolumeCount"
-        }, 
+        },
         {
             "name": "MaxAzureDiskVolumeCount"
-        }, 
+        },
         {
             "name": "MatchInterPodAffinity"
-        }, 
+        },
         {
             "name": "NoDiskConflict"
-        }, 
+        },
         {
             "name": "GeneralPredicates"
-        }, 
+        },
         {
             "name": "PodToleratesNodeTaints"
-        }, 
+        },
         {
             "name": "CheckNodeMemoryPressure"
-        }, 
+        },
         {
             "name": "CheckNodeDiskPressure"
-        }, 
+        },
         {
-            "name": "NoVolumeNodeConflict"
-        }, 
+            "name": "CheckVolumeBinding"
+        },
         {
             "argument": {
                 "serviceAffinity": {
@@ -42,46 +42,46 @@
                         "region"
                     ]
                 }
-            }, 
+            },
             "name": "Region"
         }
-    ], 
+    ],
     "priorities": [
         {
-            "name": "SelectorSpreadPriority", 
+            "name": "SelectorSpreadPriority",
             "weight": 1
-        }, 
+        },
         {
-            "name": "InterPodAffinityPriority", 
+            "name": "InterPodAffinityPriority",
             "weight": 1
-        }, 
+        },
         {
-            "name": "LeastRequestedPriority", 
+            "name": "LeastRequestedPriority",
             "weight": 1
-        }, 
+        },
         {
-            "name": "BalancedResourceAllocation", 
+            "name": "BalancedResourceAllocation",
             "weight": 1
-        }, 
+        },
         {
-            "name": "NodePreferAvoidPodsPriority", 
+            "name": "NodePreferAvoidPodsPriority",
             "weight": 10000
-        }, 
+        },
         {
-            "name": "NodeAffinityPriority", 
+            "name": "NodeAffinityPriority",
             "weight": 1
-        }, 
+        },
         {
-            "name": "TaintTolerationPriority", 
+            "name": "TaintTolerationPriority",
             "weight": 1
-        }, 
+        },
         {
             "argument": {
                 "serviceAntiAffinity": {
                     "label": "zone"
                 }
-            }, 
-            "name": "Zone", 
+            },
+            "name": "Zone",
             "weight": 2
         }
     ]
