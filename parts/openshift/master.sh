@@ -32,54 +32,13 @@ EOF
 
 echo "BOOTSTRAP_CONFIG_NAME=node-config-master" >>/etc/sysconfig/atomic-openshift-node
 
-cat >/etc/sysconfig/iptables <<'EOF'
-*nat
-:PREROUTING ACCEPT [0:0]
-:INPUT ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:POSTROUTING ACCEPT [0:0]
-:DOCKER - [0:0]
--A PREROUTING -m addrtype --dst-type LOCAL -j DOCKER
--A OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -j DOCKER
--A POSTROUTING -s 172.17.0.0/16 ! -o docker0 -j MASQUERADE
--A DOCKER -i docker0 -j RETURN
-COMMIT
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD DROP [0:0]
-:OUTPUT ACCEPT [0:0]
-:DOCKER - [0:0]
-:DOCKER-ISOLATION - [0:0]
-:OS_FIREWALL_ALLOW - [0:0]
--A INPUT -j OS_FIREWALL_ALLOW
--A FORWARD -j DOCKER-ISOLATION
--A FORWARD -o docker0 -j DOCKER
--A FORWARD -o docker0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
--A FORWARD -i docker0 ! -o docker0 -j ACCEPT
--A FORWARD -i docker0 -o docker0 -j ACCEPT
--A DOCKER-ISOLATION -j RETURN
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 2379 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 2380 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 8443 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 8444 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 8053 -j ACCEPT
--A OS_FIREWALL_ALLOW -p udp -m state --state NEW -m udp --dport 8053 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 9090 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 10250 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
--A OS_FIREWALL_ALLOW -p udp -m state --state NEW -m udp --dport 4789 -j ACCEPT
-COMMIT
-*security
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
--A OUTPUT -d 168.63.129.16/32 -p tcp -m owner --uid-owner 0 -j ACCEPT
--A OUTPUT -d 168.63.129.16/32 -p tcp -m conntrack --ctstate INVALID,NEW -j ACCEPT
-COMMIT
-EOF
+for dst in tcp,2379 tcp,2380 tcp,8443 tcp,8444 tcp,8053 udp,8053 tcp,9090; do
+	proto=${dst%%,*}
+	port=${dst##*,}
+	iptables -A OS_FIREWALL_ALLOW -p $proto -m state --state NEW -m $proto --dport $port -j ACCEPT
+done
 
-iptables-restore </etc/sysconfig/iptables
+iptables-save >/etc/sysconfig/iptables
 
 systemctl mask atomic-openshift-master.service
 
