@@ -37,7 +37,7 @@ update-ca-trust
 # ln -s /etc/origin/node/node-client-ca.crt /etc/docker/certs.d/docker-registry.default.svc:5000
 
 # note: atomic-openshift-node crash loops until master is up
-for unit in etcd.service atomic-openshift-master-api.service atomic-openshift-master-controllers.service atomic-openshift-node.service; do
+for unit in etcd.service atomic-openshift-master-api.service atomic-openshift-master-controllers.service; do
 	systemctl enable $unit
 	systemctl start $unit
 done
@@ -55,10 +55,42 @@ while ! oc get svc kubernetes &>/dev/null; do
 	sleep 1
 done
 
-
 oc create configmap node-config-master --namespace openshift-node --from-file=node-config.yaml=/tmp/bootstrapconfigs/master-config.yaml
 oc create configmap node-config-compute --namespace openshift-node --from-file=node-config.yaml=/tmp/bootstrapconfigs/compute-config.yaml
 oc create configmap node-config-infra --namespace openshift-node --from-file=node-config.yaml=/tmp/bootstrapconfigs/infra-config.yaml
+
+# must start atomic-openshift-node after master is fully up and running
+# otherwise the implicit dns change may cause master startup to fail
+systemctl enable atomic-openshift-node.service
+systemctl start atomic-openshift-node.service &
+
+# TODO: run a CSR auto-approver
+# https://github.com/kargakis/acs-engine/issues/46
+csrs=($(oc get csr -o name))
+while [[ ${#csrs[@]} != "3" ]]; do
+	sleep 2
+	csrs=($(oc get csr -o name))
+	if [[ ${#csrs[@]} == "3" ]]; then
+		break
+	fi
+done
+
+for csr in ${csrs[@]}; do
+	oc adm certificate approve $csr
+done
+
+csrs=($(oc get csr -o name))
+while [[ ${#csrs[@]} != "6" ]]; do
+	sleep 2
+	csrs=($(oc get csr -o name))
+	if [[ ${#csrs[@]} == "6" ]]; then
+		break
+	fi
+done
+
+for csr in ${csrs[@]}; do
+	oc adm certificate approve $csr
+done
 
 # TODO: do this, and more (registry console, service catalog, tsb, asb), the proper way
 
@@ -89,34 +121,6 @@ for file in /usr/share/ansible/openshift-ansible/roles/openshift_examples/files/
 	  /usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/v3.7/xpaas-streams/*.json \
 	  /usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/v3.7/xpaas-templates/*.json; do
 	oc create -n openshift -f $file
-done
-
-# TODO: run a CSR auto-approver
-# https://github.com/kargakis/acs-engine/issues/46
-csrs=($(oc get csr -o name))
-while [[ ${#csrs[@]} != "3" ]]; do
-	sleep 2
-	csrs=($(oc get csr -o name))
-	if [[ ${#csrs[@]} == "3" ]]; then
-		break
-	fi
-done
-
-for csr in ${csrs[@]}; do
-	oc adm certificate approve $csr
-done
-
-csrs=($(oc get csr -o name))
-while [[ ${#csrs[@]} != "6" ]]; do
-	sleep 2
-	csrs=($(oc get csr -o name))
-	if [[ ${#csrs[@]} == "6" ]]; then
-		break
-	fi
-done
-
-for csr in ${csrs[@]}; do
-	oc adm certificate approve $csr
 done
 
 # TODO: possibly wait here for convergence?
