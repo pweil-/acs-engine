@@ -634,10 +634,23 @@ func convertOrchestratorProfileToVLabs(api *OrchestratorProfile, o *vlabs.Orches
 		convertKubernetesConfigToVLabs(api.KubernetesConfig, o.KubernetesConfig)
 	}
 
+	if api.OpenShiftConfig != nil {
+		o.OpenShiftConfig = &vlabs.OpenShiftConfig{}
+		convertOpenShiftConfigToVLabs(api.OpenShiftConfig, o.OpenShiftConfig)
+	}
+
 	if api.DcosConfig != nil {
 		o.DcosConfig = &vlabs.DcosConfig{}
 		convertDcosConfigToVLabs(api.DcosConfig, o.DcosConfig)
 	}
+}
+
+func convertOpenShiftConfigToVLabs(api *OpenShiftConfig, vl *vlabs.OpenShiftConfig) {
+	vl.KubernetesConfig = &vlabs.KubernetesConfig{}
+	if api.KubernetesConfig != nil {
+		convertKubernetesConfigToVLabs(api.KubernetesConfig, vl.KubernetesConfig)
+	}
+	vl.RouterIP = api.RouterIP
 }
 
 func convertDcosConfigToVLabs(api *DcosConfig, vlabs *vlabs.DcosConfig) {
@@ -799,6 +812,8 @@ func convertMasterProfileToVLabs(api *MasterProfile, vlabsProfile *vlabs.MasterP
 		vlabsProfile.KubernetesConfig = &vlabs.KubernetesConfig{}
 		convertKubernetesConfigToVLabs(api.KubernetesConfig, vlabsProfile.KubernetesConfig)
 	}
+	vlabsProfile.ImageName = api.ImageName
+	vlabsProfile.ImageResourceGroup = api.ImageResourceGroup
 }
 
 func convertKeyVaultSecretsToVlabs(api *KeyVaultSecrets, vlabsSecrets *vlabs.KeyVaultSecrets) {
@@ -895,6 +910,9 @@ func convertAgentPoolProfileToVLabs(api *AgentPoolProfile, p *vlabs.AgentPoolPro
 		p.KubernetesConfig = &vlabs.KubernetesConfig{}
 		convertKubernetesConfigToVLabs(api.KubernetesConfig, p.KubernetesConfig)
 	}
+	p.ImageName = api.ImageName
+	p.ImageResourceGroup = api.ImageResourceGroup
+	p.IsOpenShiftInfra = api.IsOpenShiftInfra
 }
 
 func convertDiagnosticsProfileToV20160930(api *DiagnosticsProfile, dp *v20160930.DiagnosticsProfile) {

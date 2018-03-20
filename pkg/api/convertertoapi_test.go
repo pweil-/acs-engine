@@ -3,6 +3,7 @@ package api
 import (
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"k8s.io/apimachinery/pkg/api/equality"
 
 	"github.com/Azure/acs-engine/pkg/api/common"
@@ -169,11 +170,6 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 			expect: &OrchestratorProfile{
 				OrchestratorType:    OpenShift,
 				OrchestratorVersion: common.OpenShiftDefaultVersion,
-				OpenShiftConfig: &OpenShiftConfig{
-					Location:           "eastus",
-					ImageResourceGroup: "opstest",
-					ImageName:          "openshift-gi-1521492088",
-				},
 			},
 		},
 		"setOpenShiftConfig": {
@@ -181,21 +177,27 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 				OrchestratorProfile: &vlabs.OrchestratorProfile{
 					OrchestratorType: OpenShift,
 					OpenShiftConfig: &vlabs.OpenShiftConfig{
-						Location:           "abc",
-						RouterIP:           "def",
-						ImageResourceGroup: "ghi",
-						ImageName:          "jkl",
+						RouterIP: "def",
+						KubernetesConfig: &vlabs.KubernetesConfig{
+							NetworkPolicy:    "azure",
+							ContainerRuntime: "docker",
+						},
 					},
 				},
 			},
 			expect: &OrchestratorProfile{
 				OrchestratorType:    OpenShift,
 				OrchestratorVersion: common.OpenShiftDefaultVersion,
+				KubernetesConfig: &KubernetesConfig{
+					NetworkPolicy:    "azure",
+					ContainerRuntime: "docker",
+				},
 				OpenShiftConfig: &OpenShiftConfig{
-					Location:           "abc",
-					RouterIP:           "def",
-					ImageResourceGroup: "ghi",
-					ImageName:          "jkl",
+					KubernetesConfig: &KubernetesConfig{
+						NetworkPolicy:    "azure",
+						ContainerRuntime: "docker",
+					},
+					RouterIP: "def",
 				},
 			},
 		},
@@ -206,8 +208,7 @@ func TestConvertVLabsOrchestratorProfile(t *testing.T) {
 		actual := &OrchestratorProfile{}
 		convertVLabsOrchestratorProfile(test.props, actual)
 		if !equality.Semantic.DeepEqual(test.expect, actual) {
-			t.Errorf("Expected:\n%#v\nGot:\n%#v", test.expect, actual)
-			t.Errorf("Expected Openshift config:\n%#v\nGot config:\n%#v", test.expect.OpenShiftConfig, actual.OpenShiftConfig)
+			t.Errorf(spew.Sprintf("Expected:\n%+v\nGot:\n%+v", test.expect, actual))
 		}
 	}
 }

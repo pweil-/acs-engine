@@ -10,11 +10,11 @@ EOF
 
 systemctl restart docker.service
 
-{{- if .IsInfra }}
+{{if .IsInfra}}
 echo "BOOTSTRAP_CONFIG_NAME=node-config-infra" >>/etc/sysconfig/atomic-openshift-node
-{{- else }}
+{{else}}
 echo "BOOTSTRAP_CONFIG_NAME=node-config-compute" >>/etc/sysconfig/atomic-openshift-node
-{{- end }}
+{{end}}
 
 rm -rf /etc/etcd/* /etc/origin/master/* /etc/origin/node/*
 

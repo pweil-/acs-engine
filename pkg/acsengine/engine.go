@@ -36,6 +36,9 @@ const (
 	kubernetesAgentCustomDataYaml            = "k8s/kubernetesagentcustomdata.yml"
 	kubeConfigJSON                           = "k8s/kubeconfig.json"
 	kubernetesWindowsAgentCustomDataPS1      = "k8s/kuberneteswindowssetup.ps1"
+	// OpenShift custom scripts
+	openshiftNodeScript   = "k8s/openshiftnodescript.sh"
+	openshiftMasterScript = "k8s/openshiftmasterscript.sh"
 )
 
 const (
@@ -88,11 +91,6 @@ const (
 	swarmWinAgentResourcesVMAS    = "swarm/swarmwinagentresourcesvmas.t"
 	swarmWinAgentResourcesVMSS    = "swarm/swarmwinagentresourcesvmss.t"
 	windowsParams                 = "windowsparams.t"
-
-	//OpenShift templates
-	openshiftBase         = "openshift/openshift.json"
-	openshiftNodeScript   = "openshift/node.sh"
-	openshiftMasterScript = "openshift/master.sh"
 )
 
 const (
@@ -107,7 +105,7 @@ var dcosTemplateFiles = []string{dcosBaseFile, dcosAgentResourcesVMAS, dcosAgent
 var kubernetesTemplateFiles = []string{kubernetesBaseFile, kubernetesAgentResourcesVMAS, kubernetesAgentVars, kubernetesMasterResources, kubernetesMasterVars, kubernetesParams, kubernetesWinAgentVars}
 var swarmTemplateFiles = []string{swarmBaseFile, swarmParams, swarmAgentResourcesVMAS, swarmAgentVars, swarmAgentResourcesVMSS, swarmAgentResourcesClassic, swarmBaseFile, swarmMasterResources, swarmMasterVars, swarmWinAgentResourcesVMAS, swarmWinAgentResourcesVMSS}
 var swarmModeTemplateFiles = []string{swarmBaseFile, swarmParams, swarmAgentResourcesVMAS, swarmAgentVars, swarmAgentResourcesVMSS, swarmAgentResourcesClassic, swarmBaseFile, swarmMasterResources, swarmMasterVars, swarmWinAgentResourcesVMAS, swarmWinAgentResourcesVMSS}
-var openshiftTemplateFiles = []string{openshiftBase, openshiftNodeScript, openshiftMasterScript}
+var openshiftTemplateFiles = append(kubernetesTemplateFiles, openshiftNodeScript, openshiftMasterScript)
 
 /**
  The following parameters could be either a plain text, or referenced to a secret in a keyvault:
@@ -359,7 +357,7 @@ func (t *TemplateGenerator) prepareTemplateFiles(properties *api.Properties) ([]
 		baseFile = swarmBaseFile
 	case api.OpenShift:
 		files = append(commonTemplateFiles, openshiftTemplateFiles...)
-		baseFile = openshiftBase
+		baseFile = kubernetesBaseFile
 	default:
 		return nil, "", t.Translator.Errorf("orchestrator '%s' is unsupported", properties.OrchestratorProfile.OrchestratorType)
 	}
@@ -455,6 +453,10 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 
 	// Identify Master distro
 	masterDistro := getMasterDistro(properties.MasterProfile)
+	if properties.MasterProfile != nil {
+		addValue(parametersMap, "osImageName", properties.MasterProfile.ImageName)
+		addValue(parametersMap, "osImageResourceGroup", properties.MasterProfile.ImageResourceGroup)
+	}
 	addValue(parametersMap, "osImageOffer", cloudSpecConfig.OSImageConfig[masterDistro].ImageOffer)
 	addValue(parametersMap, "osImageSKU", cloudSpecConfig.OSImageConfig[masterDistro].ImageSku)
 	addValue(parametersMap, "osImagePublisher", cloudSpecConfig.OSImageConfig[masterDistro].ImagePublisher)
@@ -474,7 +476,7 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 	if properties.MasterProfile != nil {
 		if properties.MasterProfile.IsCustomVNET() {
 			addValue(parametersMap, "masterVnetSubnetID", properties.MasterProfile.VnetSubnetID)
-			if properties.OrchestratorProfile.IsKubernetes() {
+			if properties.OrchestratorProfile.IsKubernetes() || properties.OrchestratorProfile.IsOpenShift() {
 				addValue(parametersMap, "vnetCidr", properties.MasterProfile.VnetCidr)
 			}
 		} else {
@@ -515,7 +517,8 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 	}
 
 	// Kubernetes Parameters
-	if properties.OrchestratorProfile.OrchestratorType == api.Kubernetes {
+	if properties.OrchestratorProfile.IsKubernetes() ||
+		properties.OrchestratorProfile.IsOpenShift() {
 		k8sVersion := properties.OrchestratorProfile.OrchestratorVersion
 
 		kubernetesHyperkubeSpec := properties.OrchestratorProfile.KubernetesConfig.KubernetesImageBase + KubeConfigs[k8sVersion]["hyperkube"]
@@ -661,6 +664,8 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 		addValue(parametersMap, "generatorCode", generatorCode)
 		if properties.HostedMasterProfile != nil {
 			addValue(parametersMap, "orchestratorName", "aks")
+		} else if properties.OrchestratorProfile.IsOpenShift() {
+			addValue(parametersMap, "orchestratorName", DefaultOpenshiftOrchestratorName)
 		} else {
 			addValue(parametersMap, "orchestratorName", DefaultOrchestratorName)
 		}
@@ -707,12 +712,6 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 		}
 	}
 
-	if properties.OrchestratorProfile.OrchestratorType == api.OpenShift {
-		addValue(parametersMap, "location", properties.OrchestratorProfile.OpenShiftConfig.Location)
-		addValue(parametersMap, "imageResourceGroup", properties.OrchestratorProfile.OpenShiftConfig.ImageResourceGroup)
-		addValue(parametersMap, "imageName", properties.OrchestratorProfile.OpenShiftConfig.ImageName)
-	}
-
 	if strings.HasPrefix(properties.OrchestratorProfile.OrchestratorType, api.DCOS) {
 		dcosBootstrapURL := cloudSpecConfig.DCOSSpecConfig.DCOS188BootstrapDownloadURL
 		dcosWindowsBootstrapURL := cloudSpecConfig.DCOSSpecConfig.DCOSWindowsBootstrapDownloadURL
@@ -753,10 +752,13 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 		if len(agentProfile.Ports) > 0 {
 			addValue(parametersMap, fmt.Sprintf("%sEndpointDNSNamePrefix", agentProfile.Name), agentProfile.DNSPrefix)
 		}
+		addValue(parametersMap, fmt.Sprintf("%sIsOpenShiftInfra", agentProfile.Name), agentProfile.IsOpenShiftInfra)
 
 		// Unless distro is defined, default distro is configured by defaults#setAgentNetworkDefaults
 		//   Ignores Windows OS
 		if !(agentProfile.OSType == api.Windows) {
+			addValue(parametersMap, fmt.Sprintf("%sosImageName", agentProfile.Name), agentProfile.ImageName)
+			addValue(parametersMap, fmt.Sprintf("%sosImageResourceGroup", agentProfile.Name), agentProfile.ImageResourceGroup)
 			addValue(parametersMap, fmt.Sprintf("%sosImageOffer", agentProfile.Name), cloudSpecConfig.OSImageConfig[agentProfile.Distro].ImageOffer)
 			addValue(parametersMap, fmt.Sprintf("%sosImageSKU", agentProfile.Name), cloudSpecConfig.OSImageConfig[agentProfile.Distro].ImageSku)
 			addValue(parametersMap, fmt.Sprintf("%sosImagePublisher", agentProfile.Name), cloudSpecConfig.OSImageConfig[agentProfile.Distro].ImagePublisher)
@@ -774,7 +776,7 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 		if properties.WindowsProfile.WindowsImageSourceURL != "" {
 			addValue(parametersMap, "agentWindowsSourceUrl", properties.WindowsProfile.WindowsImageSourceURL)
 		}
-		if properties.OrchestratorProfile.OrchestratorType == api.Kubernetes {
+		if properties.OrchestratorProfile.IsKubernetes() || properties.OrchestratorProfile.IsOpenShift() {
 			k8sVersion := properties.OrchestratorProfile.OrchestratorVersion
 			addValue(parametersMap, "kubeBinariesSASURL", cloudSpecConfig.KubernetesSpecConfig.KubeBinariesSASURLBase+KubeConfigs[k8sVersion]["windowszip"])
 			addValue(parametersMap, "windowsPackageSASURLBase", cloudSpecConfig.KubernetesSpecConfig.WindowsPackageSASURLBase)
@@ -798,14 +800,6 @@ func getParameters(cs *api.ContainerService, isClassicMode bool, generatorCode s
 				extension.ExtensionParametersKeyVaultRef.SecretVersion)
 		} else {
 			addValue(parametersMap, fmt.Sprintf("%sParameters", extension.Name), extension.ExtensionParameters)
-		}
-	}
-
-	// TODO: HACK: when we use the same parameters, this will no longer be
-	// necessary
-	if properties.OrchestratorProfile.OrchestratorType == api.OpenShift {
-		for _, key := range []string{"agentCount", "agentSubnet", "agentosImageOffer", "agentosImagePublisher", "agentosImageSKU", "agentosImageVersion", "firstConsecutiveStaticIP", "fqdnEndpointSuffix", "linuxAdminUsername", "masterSubnet", "osImageOffer", "osImagePublisher", "osImageSKU", "osImageVersion", "targetEnvironment"} {
-			delete(parametersMap, key)
 		}
 	}
 
@@ -878,12 +872,12 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 		"IsKubernetesVersionGe": func(version string) bool {
 			orchestratorVersion, _ := semver.NewVersion(cs.Properties.OrchestratorProfile.OrchestratorVersion)
 			constraint, _ := semver.NewConstraint(">=" + version)
-			return cs.Properties.OrchestratorProfile.OrchestratorType == api.Kubernetes && constraint.Check(orchestratorVersion)
+			return cs.Properties.OrchestratorProfile.IsKubernetes() && constraint.Check(orchestratorVersion)
 		},
 		"IsKubernetesVersionLt": func(version string) bool {
 			orchestratorVersion, _ := semver.NewVersion(cs.Properties.OrchestratorProfile.OrchestratorVersion)
 			constraint, _ := semver.NewConstraint("<" + version)
-			return cs.Properties.OrchestratorProfile.OrchestratorType == api.Kubernetes && constraint.Check(orchestratorVersion)
+			return cs.Properties.OrchestratorProfile.IsKubernetes() && constraint.Check(orchestratorVersion)
 		},
 		"IsKubernetesVersionTilde": func(version string) bool {
 			// examples include
@@ -891,7 +885,7 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 			// ~1.2.x is equivalent to >= 1.2.0, < 1.3.0
 			orchestratorVersion, _ := semver.NewVersion(cs.Properties.OrchestratorProfile.OrchestratorVersion)
 			constraint, _ := semver.NewConstraint("~" + version)
-			return cs.Properties.OrchestratorProfile.OrchestratorType == api.Kubernetes && constraint.Check(orchestratorVersion)
+			return cs.Properties.OrchestratorProfile.IsKubernetes() && constraint.Check(orchestratorVersion)
 		},
 		"GetMasterKubernetesLabels": func(rg string) string {
 			var buf bytes.Buffer
@@ -913,6 +907,9 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 			return buf.String()
 		},
 		"GetKubeletConfigKeyVals": func(kc *api.KubernetesConfig) string {
+			if cs.Properties.OrchestratorProfile.KubernetesConfig == nil || kc == nil {
+				return ""
+			}
 			kubeletConfig := cs.Properties.OrchestratorProfile.KubernetesConfig.KubeletConfig
 			if kc.KubeletConfig != nil {
 				kubeletConfig = kc.KubeletConfig
@@ -943,13 +940,16 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 			return strings.TrimSuffix(buf.String(), ", ")
 		},
 		"RequiresFakeAgentOutput": func() bool {
-			return cs.Properties.OrchestratorProfile.OrchestratorType == api.Kubernetes
+			return cs.Properties.OrchestratorProfile.IsKubernetes() || cs.Properties.OrchestratorProfile.IsOpenShift()
 		},
 		"IsSwarmMode": func() bool {
 			return cs.Properties.OrchestratorProfile.IsSwarmMode()
 		},
 		"IsKubernetes": func() bool {
 			return cs.Properties.OrchestratorProfile.IsKubernetes()
+		},
+		"IsOpenShift": func() bool {
+			return cs.Properties.OrchestratorProfile.IsOpenShift()
 		},
 		"IsPublic": func(ports []int) bool {
 			return len(ports) > 0
@@ -961,12 +961,12 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 			return cs.Properties.OrchestratorProfile.KubernetesConfig != nil && cs.Properties.OrchestratorProfile.KubernetesConfig.EnablePrivateCluster
 		},
 		"UseManagedIdentity": func() bool {
-			return cs.Properties.OrchestratorProfile.KubernetesConfig.UseManagedIdentity
+			return cs.Properties.OrchestratorProfile.KubernetesConfig != nil && cs.Properties.OrchestratorProfile.KubernetesConfig.UseManagedIdentity
 		},
 		"UseInstanceMetadata": func() bool {
-			if cs.Properties.OrchestratorProfile.KubernetesConfig.UseInstanceMetadata == nil {
+			if cs.Properties.OrchestratorProfile.KubernetesConfig != nil && cs.Properties.OrchestratorProfile.KubernetesConfig.UseInstanceMetadata == nil {
 				return true
-			} else if *cs.Properties.OrchestratorProfile.KubernetesConfig.UseInstanceMetadata {
+			} else if cs.Properties.OrchestratorProfile.KubernetesConfig != nil && *cs.Properties.OrchestratorProfile.KubernetesConfig.UseInstanceMetadata {
 				return true
 			}
 			return false
@@ -1068,7 +1068,7 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 		"GetAgentAllowedSizes": func() string {
 			if t.ClassicMode {
 				return GetClassicAllowedSizes()
-			} else if cs.Properties.OrchestratorProfile.OrchestratorType == api.Kubernetes {
+			} else if cs.Properties.OrchestratorProfile.IsKubernetes() || cs.Properties.OrchestratorProfile.IsOpenShift() {
 				return GetKubernetesAgentAllowedSizes()
 			}
 			return GetMasterAgentAllowedSizes()
@@ -1312,6 +1312,12 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 		"GetAgentOSImageVersion": func(profile *api.AgentPoolProfile) string {
 			cloudSpecConfig := GetCloudSpecConfig(cs.Location)
 			return fmt.Sprintf("\"%s\"", cloudSpecConfig.OSImageConfig[profile.Distro].ImageVersion)
+		},
+		"UseAgentCustomImage": func(profile *api.AgentPoolProfile) bool {
+			return len(profile.ImageName) > 0 && len(profile.ImageResourceGroup) > 0
+		},
+		"UseMasterCustomImage": func() bool {
+			return len(cs.Properties.MasterProfile.ImageName) > 0 && len(cs.Properties.MasterProfile.ImageResourceGroup) > 0
 		},
 		"GetMasterEtcdServerPort": func() int {
 			return DefaultMasterEtcdServerPort
@@ -1617,15 +1623,23 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 			return fmt.Sprintf("\"defaultValue\": \"%s\",", val)
 		},
 		"UseCloudControllerManager": func() bool {
-			return cs.Properties.OrchestratorProfile.KubernetesConfig.UseCloudControllerManager != nil && *cs.Properties.OrchestratorProfile.KubernetesConfig.UseCloudControllerManager
+			return cs.Properties.OrchestratorProfile.KubernetesConfig != nil &&
+				cs.Properties.OrchestratorProfile.KubernetesConfig.UseCloudControllerManager != nil &&
+				*cs.Properties.OrchestratorProfile.KubernetesConfig.UseCloudControllerManager
 		},
 		"AdminGroupID": func() bool {
 			return cs.Properties.AADProfile != nil && cs.Properties.AADProfile.AdminGroupID != ""
 		},
 		"EnableDataEncryptionAtRest": func() bool {
+			if cs.Properties.OrchestratorProfile.KubernetesConfig == nil {
+				return false
+			}
 			return helpers.IsTrueBoolPointer(cs.Properties.OrchestratorProfile.KubernetesConfig.EnableDataEncryptionAtRest)
 		},
 		"EnableAggregatedAPIs": func() bool {
+			if cs.Properties.OrchestratorProfile.KubernetesConfig == nil {
+				return false
+			}
 			if cs.Properties.OrchestratorProfile.KubernetesConfig.EnableAggregatedAPIs {
 				return true
 			} else if isKubernetesVersionGe(cs.Properties.OrchestratorProfile.OrchestratorVersion, "1.9.0") {
@@ -1634,23 +1648,26 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 			return false
 		},
 		"EnablePodSecurityPolicy": func() bool {
+			if cs.Properties.OrchestratorProfile.KubernetesConfig == nil {
+				return false
+			}
 			return helpers.IsTrueBoolPointer(cs.Properties.OrchestratorProfile.KubernetesConfig.EnablePodSecurityPolicy)
 		},
 		"OpenShiftGetMasterSh": func() string {
-			tb := MustAsset("openshift/master.sh")
+			tb := MustAsset("k8s/openshiftmasterscript.sh")
 			t := template.Must(template.New("master").Parse(string(tb)))
 			b := &bytes.Buffer{}
 			t.Execute(b, struct {
 				ConfigBundle           string
 				ExternalMasterHostname string
 			}{
-				ExternalMasterHostname: fmt.Sprintf("%s.%s.cloudapp.azure.com", cs.Properties.MasterProfile.DNSPrefix, cs.Properties.OrchestratorProfile.OpenShiftConfig.Location),
 				ConfigBundle:           base64.StdEncoding.EncodeToString(cs.Properties.OrchestratorProfile.OpenShiftConfig.ConfigBundles["master"]),
+				ExternalMasterHostname: cs.Properties.OrchestratorProfile.OpenShiftConfig.ExternalMasterHostname,
 			})
 			return b.String()
 		},
-		"OpenShiftGetNodeSh": func(isInfra bool) string {
-			tb := MustAsset("openshift/node.sh")
+		"OpenShiftGetNodeSh": func(profile *api.AgentPoolProfile) string {
+			tb := MustAsset("k8s/openshiftnodescript.sh")
 			t := template.Must(template.New("node").Parse(string(tb)))
 			b := &bytes.Buffer{}
 			t.Execute(b, struct {
@@ -1658,7 +1675,7 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 				IsInfra      bool
 			}{
 				ConfigBundle: base64.StdEncoding.EncodeToString(cs.Properties.OrchestratorProfile.OpenShiftConfig.ConfigBundles["bootstrap"]),
-				IsInfra:      isInfra,
+				IsInfra:      profile.IsOpenShiftInfra,
 			})
 			return b.String()
 		},
@@ -1689,7 +1706,7 @@ func (t *TemplateGenerator) getTemplateFuncMap(cs *api.ContainerService) templat
 
 func makeMasterExtensionScriptCommands(cs *api.ContainerService) string {
 	copyIndex := "',copyIndex(),'"
-	if cs.Properties.OrchestratorProfile.IsKubernetes() {
+	if cs.Properties.OrchestratorProfile.IsKubernetes() || cs.Properties.OrchestratorProfile.IsOpenShift() {
 		copyIndex = "',copyIndex(variables('masterOffset')),'"
 	}
 	return makeExtensionScriptCommands(cs.Properties.MasterProfile.PreprovisionExtension,
@@ -2421,7 +2438,7 @@ func getMasterLinkedTemplateText(masterProfile *api.MasterProfile, orchestratorT
 
 	loopCount := "[variables('masterCount')]"
 	loopOffset := ""
-	if orchestratorType == api.Kubernetes {
+	if orchestratorType == api.Kubernetes || orchestratorType == api.OpenShift {
 		// Due to upgrade k8s sometimes needs to install just some of the nodes.
 		loopCount = "[sub(variables('masterCount'), variables('masterOffset'))]"
 		loopOffset = "variables('masterOffset')"

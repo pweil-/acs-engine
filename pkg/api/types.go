@@ -276,13 +276,11 @@ type DcosConfig struct {
 
 // OpenShiftConfig holds configuration for OpenShift
 type OpenShiftConfig struct {
-	Location           string `json:"location,omitempty"`
-	RouterIP           string `json:"routerip,omitempty"`
-	ImageResourceGroup string `json:"imageResourceGroup,omitempty"`
-	ImageName          string `json:"imageName,omitempty"`
+	KubernetesConfig *KubernetesConfig `json:"kubernetesConfig,omitempty"`
+	RouterIP         string            `json:"routerip,omitempty"`
 
-	ConfigBundles map[string][]byte `json:"-"`
-	InfraNodes    map[string]bool   `json:"-"`
+	ConfigBundles          map[string][]byte `json:"-"`
+	ExternalMasterHostname string            `json:"-"`
 }
 
 // MasterProfile represents the definition of the master cluster
@@ -303,6 +301,9 @@ type MasterProfile struct {
 	Extensions               []Extension       `json:"extensions"`
 	Distro                   Distro            `json:"distro,omitempty"`
 	KubernetesConfig         *KubernetesConfig `json:"kubernetesConfig,omitempty"`
+
+	ImageName          string `json:"imageName,omitempty"`
+	ImageResourceGroup string `json:"imageResourceGroup,omitempty"`
 
 	// Master LB public endpoint/FQDN with port
 	// The format will be FQDN:2376
@@ -345,12 +346,16 @@ type AgentPoolProfile struct {
 	Subnet              string `json:"subnet"`
 	IPAddressCount      int    `json:"ipAddressCount,omitempty"`
 	Distro              Distro `json:"distro,omitempty"`
+	IsOpenShiftInfra    bool   `json:"isOpenShiftInfra,omitempty"`
 
 	FQDN                  string            `json:"fqdn,omitempty"`
 	CustomNodeLabels      map[string]string `json:"customNodeLabels,omitempty"`
 	PreprovisionExtension *Extension        `json:"preProvisionExtension"`
 	Extensions            []Extension       `json:"extensions"`
 	KubernetesConfig      *KubernetesConfig `json:"kubernetesConfig,omitempty"`
+
+	ImageName          string `json:"imageName,omitempty"`
+	ImageResourceGroup string `json:"imageResourceGroup,omitempty"`
 }
 
 // DiagnosticsProfile setting to enable/disable capturing
@@ -626,6 +631,11 @@ func (o *OrchestratorProfile) IsSwarmMode() bool {
 // IsKubernetes returns true if this template is for Kubernetes orchestrator
 func (o *OrchestratorProfile) IsKubernetes() bool {
 	return o.OrchestratorType == Kubernetes
+}
+
+// IsOpenShift returns true if this template is for OpenShift orchestrator
+func (o *OrchestratorProfile) IsOpenShift() bool {
+	return o.OrchestratorType == OpenShift
 }
 
 // IsDCOS returns true if this template is for DCOS orchestrator
