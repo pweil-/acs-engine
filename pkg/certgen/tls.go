@@ -148,25 +148,25 @@ func writePublicKey(fs filesystem.Filesystem, filename string, key *rsa.PublicKe
 }
 
 // PrepareMasterCerts creates the master certs
-func (c *Config) PrepareMasterCerts(node *Node) error {
+func (c *Config) PrepareMasterCerts() error {
 	if c.cas == nil {
 		c.cas = map[string]CertAndKey{}
 	}
 
-	if node.Master.certs == nil {
-		node.Master.certs = map[string]CertAndKey{}
+	if c.Master.certs == nil {
+		c.Master.certs = map[string]CertAndKey{}
 	}
 
-	if node.Master.etcdcerts == nil {
-		node.Master.etcdcerts = map[string]CertAndKey{}
+	if c.Master.etcdcerts == nil {
+		c.Master.etcdcerts = map[string]CertAndKey{}
 	}
 
-	ips := append([]net.IP{}, node.IPs...)
+	ips := append([]net.IP{}, c.Master.IPs...)
 	ips = append(ips, net.ParseIP("172.30.0.1"))
 
 	dns := []string{
 		c.ExternalMasterHostname, "kubernetes", "kubernetes.default", "kubernetes.default.svc",
-		"kubernetes.default.svc.cluster.local", node.Hostname, "openshift",
+		"kubernetes.default.svc.cluster.local", c.Master.Hostname, "openshift",
 		"openshift.default", "openshift.default.svc",
 		"openshift.default.svc.cluster.local",
 	}
@@ -247,7 +247,7 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 		{
 			filename: "etcd.server",
 			template: &x509.Certificate{
-				Subject:     pkix.Name{CommonName: node.IPs[0].String()},
+				Subject:     pkix.Name{CommonName: c.Master.IPs[0].String()},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 				DNSNames:    dns,
 				IPAddresses: ips,
@@ -256,10 +256,10 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 		{
 			filename: "master.etcd-client",
 			template: &x509.Certificate{
-				Subject:     pkix.Name{CommonName: node.Hostname},
+				Subject:     pkix.Name{CommonName: c.Master.Hostname},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
-				DNSNames:    []string{node.Hostname}, // TODO
-				IPAddresses: []net.IP{node.IPs[0]},   // TODO
+				DNSNames:    []string{c.Master.Hostname}, // TODO
+				IPAddresses: []net.IP{c.Master.IPs[0]},   // TODO
 			},
 			signer: "master.etcd-ca",
 		},
@@ -280,7 +280,7 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 		{
 			filename: "master.server",
 			template: &x509.Certificate{
-				Subject:     pkix.Name{CommonName: node.IPs[0].String()},
+				Subject:     pkix.Name{CommonName: c.Master.IPs[0].String()},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 				DNSNames:    dns,
 				IPAddresses: ips,
@@ -341,7 +341,7 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 			return err
 		}
 
-		node.Master.certs[cert.filename] = certAndKey
+		c.Master.certs[cert.filename] = certAndKey
 	}
 
 	etcdcerts := []struct {
@@ -352,20 +352,20 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 		{
 			filename: "peer",
 			template: &x509.Certificate{
-				Subject:     pkix.Name{CommonName: node.Hostname},
+				Subject:     pkix.Name{CommonName: c.Master.Hostname},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-				DNSNames:    []string{node.Hostname}, // TODO
-				IPAddresses: []net.IP{node.IPs[0]},   // TODO
+				DNSNames:    []string{c.Master.Hostname}, // TODO
+				IPAddresses: []net.IP{c.Master.IPs[0]},   // TODO
 			},
 			signer: "master.etcd-ca",
 		},
 		{
 			filename: "server",
 			template: &x509.Certificate{
-				Subject:     pkix.Name{CommonName: node.Hostname},
+				Subject:     pkix.Name{CommonName: c.Master.Hostname},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-				DNSNames:    []string{node.Hostname}, // TODO
-				IPAddresses: []net.IP{node.IPs[0]},   // TODO
+				DNSNames:    []string{c.Master.Hostname}, // TODO
+				IPAddresses: []net.IP{c.Master.IPs[0]},   // TODO
 			},
 			signer: "master.etcd-ca",
 		},
@@ -389,14 +389,14 @@ func (c *Config) PrepareMasterCerts(node *Node) error {
 			return err
 		}
 
-		node.Master.etcdcerts[cert.filename] = certAndKey
+		c.Master.etcdcerts[cert.filename] = certAndKey
 	}
 
 	return nil
 }
 
 // WriteMasterCerts writes the master certs
-func (c *Config) WriteMasterCerts(fs filesystem.Filesystem, node *Node) error {
+func (c *Config) WriteMasterCerts(fs filesystem.Filesystem) error {
 	for filename, ca := range c.cas {
 		err := writeCert(fs, fmt.Sprintf("etc/origin/master/%s.crt", filename), ca.cert)
 		if err != nil {
@@ -434,7 +434,7 @@ func (c *Config) WriteMasterCerts(fs filesystem.Filesystem, node *Node) error {
 		return err
 	}
 
-	for filename, cert := range node.Master.certs {
+	for filename, cert := range c.Master.certs {
 		err := writeCert(fs, fmt.Sprintf("etc/origin/master/%s.crt", filename), cert.cert)
 		if err != nil {
 			return err
@@ -446,7 +446,7 @@ func (c *Config) WriteMasterCerts(fs filesystem.Filesystem, node *Node) error {
 		}
 	}
 
-	for filename, cert := range node.Master.etcdcerts {
+	for filename, cert := range c.Master.etcdcerts {
 		err := writeCert(fs, fmt.Sprintf("etc/etcd/%s.crt", filename), cert.cert)
 		if err != nil {
 			return err
@@ -461,27 +461,23 @@ func (c *Config) WriteMasterCerts(fs filesystem.Filesystem, node *Node) error {
 	return nil
 }
 
-// WriteNodeCerts writes the node certs
-func (c *Config) WriteNodeCerts(fs filesystem.Filesystem, node *Node) error {
+// WriteBootstrapCerts writes the node bootstrap certs
+func (c *Config) WriteBootstrapCerts(fs filesystem.Filesystem) error {
 	err := writeCert(fs, "etc/origin/node/ca.crt", c.cas["ca"].cert)
 	if err != nil {
 		return err
 	}
 
-	err = writeCert(fs, "etc/origin/node/node-bootstrapper.crt", c.Nodes[0].Master.certs["node-bootstrapper"].cert)
-	if err != nil {
-		return err
-	}
-	err = writePrivateKey(fs, "etc/origin/node/node-bootstrapper.key", c.Nodes[0].Master.certs["node-bootstrapper"].key)
+	err = writeCert(fs, "etc/origin/node/node-bootstrapper.crt", c.Master.certs["node-bootstrapper"].cert)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return writePrivateKey(fs, "etc/origin/node/node-bootstrapper.key", c.Master.certs["node-bootstrapper"].key)
 }
 
 // WriteMasterKeypair writes the master service account keypair
-func (c *Config) WriteMasterKeypair(fs filesystem.Filesystem, node *Node) error {
+func (c *Config) WriteMasterKeypair(fs filesystem.Filesystem) error {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return err

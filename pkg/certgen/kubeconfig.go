@@ -58,46 +58,46 @@ type UserInfo struct {
 }
 
 // PrepareMasterKubeConfigs creates the master kubeconfigs
-func (c *Config) PrepareMasterKubeConfigs(node *Node) error {
-	endpoint := fmt.Sprintf("%s:%d", node.Hostname, node.Master.Port)
+func (c *Config) PrepareMasterKubeConfigs() error {
+	endpoint := fmt.Sprintf("%s:%d", c.Master.Hostname, c.Master.Port)
 	endpointName := strings.Replace(endpoint, ".", "-", -1)
 
-	externalEndpoint := fmt.Sprintf("%s:%d", c.ExternalMasterHostname, node.Master.Port)
+	externalEndpoint := fmt.Sprintf("%s:%d", c.ExternalMasterHostname, c.Master.Port)
 	externalEndpointName := strings.Replace(externalEndpoint, ".", "-", -1)
 
-	localhostEndpoint := fmt.Sprintf("localhost:%d", node.Master.Port)
+	localhostEndpoint := fmt.Sprintf("localhost:%d", c.Master.Port)
 	localhostEndpointName := strings.Replace(localhostEndpoint, ".", "-", -1)
 
 	cacert, err := certAsBytes(c.cas["ca"].cert)
 	if err != nil {
 		return err
 	}
-	admincert, err := certAsBytes(node.Master.certs["admin"].cert)
+	admincert, err := certAsBytes(c.Master.certs["admin"].cert)
 	if err != nil {
 		return err
 	}
-	adminkey, err := privateKeyAsBytes(node.Master.certs["admin"].key)
+	adminkey, err := privateKeyAsBytes(c.Master.certs["admin"].key)
 	if err != nil {
 		return err
 	}
-	mastercert, err := certAsBytes(node.Master.certs["openshift-master"].cert)
+	mastercert, err := certAsBytes(c.Master.certs["openshift-master"].cert)
 	if err != nil {
 		return err
 	}
-	masterkey, err := privateKeyAsBytes(node.Master.certs["openshift-master"].key)
+	masterkey, err := privateKeyAsBytes(c.Master.certs["openshift-master"].key)
 	if err != nil {
 		return err
 	}
-	aggregatorcert, err := certAsBytes(node.Master.certs["aggregator-front-proxy"].cert)
+	aggregatorcert, err := certAsBytes(c.Master.certs["aggregator-front-proxy"].cert)
 	if err != nil {
 		return err
 	}
-	aggregatorkey, err := privateKeyAsBytes(node.Master.certs["aggregator-front-proxy"].key)
+	aggregatorkey, err := privateKeyAsBytes(c.Master.certs["aggregator-front-proxy"].key)
 	if err != nil {
 		return err
 	}
 
-	node.Master.kubeconfigs = map[string]KubeConfig{
+	c.Master.kubeconfigs = map[string]KubeConfig{
 		"admin.kubeconfig": {
 			APIVersion: "v1",
 			Kind:       "Config",
@@ -202,9 +202,9 @@ func (c *Config) PrepareMasterKubeConfigs(node *Node) error {
 	return nil
 }
 
-// PrepareNodeKubeConfig creates the node kubeconfig
-func (c *Config) PrepareNodeKubeConfig(node *Node) error {
-	ep := fmt.Sprintf("%s:%d", c.ExternalMasterHostname, c.Nodes[0].Master.Port)
+// PrepareBootstrapKubeConfig creates the node bootstrap kubeconfig
+func (c *Config) PrepareBootstrapKubeConfig() error {
+	ep := fmt.Sprintf("%s:%d", c.ExternalMasterHostname, c.Master.Port)
 	epName := strings.Replace(ep, ".", "-", -1)
 
 	cacert, err := certAsBytes(c.cas["ca"].cert)
@@ -212,46 +212,44 @@ func (c *Config) PrepareNodeKubeConfig(node *Node) error {
 		return err
 	}
 
-	bootstrapCert, err := certAsBytes(c.Nodes[0].Master.certs["node-bootstrapper"].cert)
+	bootstrapCert, err := certAsBytes(c.Master.certs["node-bootstrapper"].cert)
 	if err != nil {
 		return err
 	}
-	bootstrapKey, err := privateKeyAsBytes(c.Nodes[0].Master.certs["node-bootstrapper"].key)
+	bootstrapKey, err := privateKeyAsBytes(c.Master.certs["node-bootstrapper"].key)
 	if err != nil {
 		return err
 	}
 
-	node.kubeconfigs = map[string]KubeConfig{
-		"bootstrap.kubeconfig": {
-			APIVersion: "v1",
-			Kind:       "Config",
-			Clusters: []Cluster{
-				{
-					Name: epName,
-					Cluster: ClusterInfo{
-						Server: fmt.Sprintf("https://%s", ep),
-						CertificateAuthorityData: base64.StdEncoding.EncodeToString(cacert),
-					},
+	c.Bootstrap = KubeConfig{
+		APIVersion: "v1",
+		Kind:       "Config",
+		Clusters: []Cluster{
+			{
+				Name: epName,
+				Cluster: ClusterInfo{
+					Server: fmt.Sprintf("https://%s", ep),
+					CertificateAuthorityData: base64.StdEncoding.EncodeToString(cacert),
 				},
 			},
-			Contexts: []Context{
-				{
-					Name: fmt.Sprintf("default/%s/system:serviceaccount:openshift-infra:node-bootstrapper", epName),
-					Context: ContextInfo{
-						Cluster:   epName,
-						Namespace: "default",
-						User:      fmt.Sprintf("system:serviceaccount:openshift-infra:node-bootstrapper/%s", epName),
-					},
+		},
+		Contexts: []Context{
+			{
+				Name: fmt.Sprintf("default/%s/system:serviceaccount:openshift-infra:node-bootstrapper", epName),
+				Context: ContextInfo{
+					Cluster:   epName,
+					Namespace: "default",
+					User:      fmt.Sprintf("system:serviceaccount:openshift-infra:node-bootstrapper/%s", epName),
 				},
 			},
-			CurrentContext: fmt.Sprintf("default/%s/system:serviceaccount:openshift-infra:node-bootstrapper", epName),
-			Users: []User{
-				{
-					Name: fmt.Sprintf("system:serviceaccount:openshift-infra:node-bootstrapper/%s", epName),
-					User: UserInfo{
-						ClientCertificateData: base64.StdEncoding.EncodeToString(bootstrapCert),
-						ClientKeyData:         base64.StdEncoding.EncodeToString(bootstrapKey),
-					},
+		},
+		CurrentContext: fmt.Sprintf("default/%s/system:serviceaccount:openshift-infra:node-bootstrapper", epName),
+		Users: []User{
+			{
+				Name: fmt.Sprintf("system:serviceaccount:openshift-infra:node-bootstrapper/%s", epName),
+				User: UserInfo{
+					ClientCertificateData: base64.StdEncoding.EncodeToString(bootstrapCert),
+					ClientKeyData:         base64.StdEncoding.EncodeToString(bootstrapKey),
 				},
 			},
 		},
@@ -261,8 +259,8 @@ func (c *Config) PrepareNodeKubeConfig(node *Node) error {
 }
 
 // WriteMasterKubeConfigs writes the master kubeconfigs
-func (c *Config) WriteMasterKubeConfigs(fs filesystem.Filesystem, node *Node) error {
-	for filename, kubeconfig := range node.Master.kubeconfigs {
+func (c *Config) WriteMasterKubeConfigs(fs filesystem.Filesystem) error {
+	for filename, kubeconfig := range c.Master.kubeconfigs {
 		b, err := yaml.Marshal(&kubeconfig)
 		if err != nil {
 			return err
@@ -276,18 +274,11 @@ func (c *Config) WriteMasterKubeConfigs(fs filesystem.Filesystem, node *Node) er
 	return nil
 }
 
-// WriteNodeKubeConfig writes the node kubeconfig
-func (c *Config) WriteNodeKubeConfig(fs filesystem.Filesystem, node *Node) error {
-	for filename, kubeconfig := range node.kubeconfigs {
-		b, err := yaml.Marshal(&kubeconfig)
-		if err != nil {
-			return err
-		}
-		err = fs.WriteFile(fmt.Sprintf("etc/origin/node/%s", filename), b, 0600)
-		if err != nil {
-			return err
-		}
+// WriteBootstrapKubeConfig writes the node bootstrap kubeconfig
+func (c *Config) WriteBootstrapKubeConfig(fs filesystem.Filesystem) error {
+	b, err := yaml.Marshal(&c.Bootstrap)
+	if err != nil {
+		return err
 	}
-
-	return nil
+	return fs.WriteFile("etc/origin/node/bootstrap.kubeconfig", b, 0600)
 }

@@ -13,7 +13,7 @@ import (
 )
 
 // PrepareMasterFiles creates the shared authentication and encryption secrets
-func (c *Config) PrepareMasterFiles(node *Node) error {
+func (c *Config) PrepareMasterFiles() error {
 	b := make([]byte, 24)
 	_, err := rand.Read(b)
 	if err != nil {
@@ -31,7 +31,7 @@ func (c *Config) PrepareMasterFiles(node *Node) error {
 }
 
 // WriteMasterFiles writes the templated master config
-func (c *Config) WriteMasterFiles(fs filesystem.Filesystem, node *Node) error {
+func (c *Config) WriteMasterFiles(fs filesystem.Filesystem) error {
 	for _, name := range templates.AssetNames() {
 		if !strings.HasPrefix(name, "master/") {
 			continue
@@ -61,11 +61,12 @@ func (c *Config) WriteMasterFiles(fs filesystem.Filesystem, node *Node) error {
 }
 
 // WriteNodeFiles writes the templated node config
-func (c *Config) WriteNodeFiles(fs filesystem.Filesystem, node *Node) error {
+func (c *Config) WriteNodeFiles(fs filesystem.Filesystem) error {
 	for _, name := range templates.AssetNames() {
 		if !strings.HasPrefix(name, "node/") {
 			continue
 		}
+
 		tb := templates.MustAsset(name)
 
 		t, err := template.New("template").Funcs(template.FuncMap{
@@ -76,7 +77,7 @@ func (c *Config) WriteNodeFiles(fs filesystem.Filesystem, node *Node) error {
 		}
 
 		b := &bytes.Buffer{}
-		err = t.Execute(b, node)
+		err = t.Execute(b, struct{}{})
 		if err != nil {
 			return err
 		}

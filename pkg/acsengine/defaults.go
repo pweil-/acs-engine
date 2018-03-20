@@ -605,89 +605,75 @@ func setStorageDefaults(a *api.Properties) {
 
 func openShiftSetDefaultCerts(a *api.Properties) (bool, error) {
 	c := certgen.Config{
-		Nodes: []certgen.Node{
-			{
-				Hostname: "master",
-				IPs: []net.IP{
-					net.ParseIP("10.0.0.11"),
-				},
-				Master: &certgen.Master{
-					Port: 8443,
-				},
+		Master: &certgen.Master{
+			Hostname: "master",
+			IPs: []net.IP{
+				net.ParseIP("10.0.0.11"),
 			},
-			{
-				Hostname: "infra1",
-				IPs: []net.IP{
-					net.ParseIP("10.0.0.21"),
-				},
-				Infra: true,
-			},
-			{
-				Hostname: "node1",
-				IPs: []net.IP{
-					net.ParseIP("10.0.0.31"),
-				},
-			},
+			Port: 8443,
 		},
 		ExternalMasterHostname: fmt.Sprintf("%s.%s.cloudapp.azure.com", a.MasterProfile.DNSPrefix, a.OrchestratorProfile.OpenShiftConfig.Location),
 		ExternalRouterIP:       net.ParseIP(a.OrchestratorProfile.OpenShiftConfig.RouterIP),
 	}
 
-	for i, node := range c.Nodes {
-		if node.Master == nil {
-			continue
-		}
-		err := c.PrepareMasterCerts(&c.Nodes[i])
-		if err != nil {
-			return false, err
-		}
-		err = c.PrepareMasterKubeConfigs(&c.Nodes[i])
-		if err != nil {
-			return false, err
-		}
-		err = c.PrepareMasterFiles(&c.Nodes[i])
-		if err != nil {
-			return false, err
-		}
+	err := c.PrepareMasterCerts()
+	if err != nil {
+		return false, err
+	}
+	err = c.PrepareMasterKubeConfigs()
+	if err != nil {
+		return false, err
+	}
+	err = c.PrepareMasterFiles()
+	if err != nil {
+		return false, err
 	}
 
-	for i := range c.Nodes {
-		err := c.PrepareNodeKubeConfig(&c.Nodes[i])
-		if err != nil {
-			return false, err
-		}
+	err = c.PrepareBootstrapKubeConfig()
+	if err != nil {
+		return false, err
 	}
 
 	if a.OrchestratorProfile.OpenShiftConfig.ConfigBundles == nil {
 		a.OrchestratorProfile.OpenShiftConfig.ConfigBundles = make(map[string][]byte)
 	}
-	if a.OrchestratorProfile.OpenShiftConfig.InfraNodes == nil {
-		a.OrchestratorProfile.OpenShiftConfig.InfraNodes = make(map[string]bool)
+
+	masterBundle, err := getConfigBundle(c.WriteMaster)
+	if err != nil {
+		return false, err
 	}
+	a.OrchestratorProfile.OpenShiftConfig.ConfigBundles[c.Master.Hostname] = masterBundle
 
-	for i, node := range c.Nodes {
-		b := &bytes.Buffer{}
-
-		fs, err := filesystem.NewTGZFile(b)
-		if err != nil {
-			return false, err
-		}
-
-		err = c.WriteNode(fs, &c.Nodes[i])
-		if err != nil {
-			return false, err
-		}
-
-		err = fs.Close()
-		if err != nil {
-			return false, err
-		}
-
-		a.OrchestratorProfile.OpenShiftConfig.InfraNodes[node.Hostname] = node.Infra
-		a.OrchestratorProfile.OpenShiftConfig.ConfigBundles[node.Hostname] = b.Bytes()
+	nodeBundle, err := getConfigBundle(c.WriteNode)
+	if err != nil {
+		return false, err
 	}
+	a.OrchestratorProfile.OpenShiftConfig.ConfigBundles["bootstrap"] = nodeBundle
 
 	return false, nil
+}
+
+type writeFn func(filesystem.Filesystem) error
+
+func getConfigBundle(write writeFn) ([]byte, error) {
+	b := &bytes.Buffer{}
+
+	fs, err := filesystem.NewTGZFile(b)
+	if err != nil {
+		return nil, err
+	}
+
+	err = write(fs)
+	if err != nil {
+		return nil, err
+	}
+
+	err = fs.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return b.Bytes(), nil
 }
 
 func setDefaultCerts(a *api.Properties) (bool, error) {
