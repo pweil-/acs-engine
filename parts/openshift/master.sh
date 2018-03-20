@@ -1,17 +1,7 @@
 #!/bin/bash -x
 
-# note: this is laid down by atomic-openshift-node.service
-cat >/etc/dnsmasq.d/node-dnsmasq.conf <<'EOF'
-server=/in-addr.arpa/127.0.0.1
-server=/cluster.local/127.0.0.1
-EOF
-
-# TODO: probably shouldn't be hardcoded
-cat >/etc/dnsmasq.d/origin-upstream-dns.conf <<'EOF'
-server=168.63.129.16
-EOF
-
-systemctl restart dnsmasq.service
+# TODO: /etc/dnsmasq.d/origin-upstream-dns.conf is currently hardcoded; it
+# probably shouldn't be
 
 # TODO: remove this once we generate the registry certificate
 cat >>/etc/sysconfig/docker <<'EOF'
@@ -20,151 +10,21 @@ EOF
 
 systemctl restart docker.service
 
-# note: for now we don't use /etc/NetworkManager/dispatcher.d/99-origin-dns.sh
-# because it insists on placing cluster.local before the internal azure domain
-# name in the search list.  This causes a deadlock at startup when the apiserver
-# tries to connect to etcd: it tries to resolve master.cluster.local against
-# dnsmasq, which tries the apiserver dns, which isn't up yet.
-# TODO: revisit this code.
+echo "BOOTSTRAP_CONFIG_NAME=node-config-master" >>/etc/sysconfig/atomic-openshift-node
 
-# ensure our image doesn't have this script
-rm -f /etc/NetworkManager/dispatcher.d/99-origin-dns.sh
+for dst in tcp,2379 tcp,2380 tcp,8443 tcp,8444 tcp,8053 udp,8053 tcp,9090; do
+	proto=${dst%%,*}
+	port=${dst##*,}
+	iptables -A OS_FIREWALL_ALLOW -p $proto -m state --state NEW -m $proto --dport $port -j ACCEPT
+done
 
-systemctl restart NetworkManager.service
+iptables-save >/etc/sysconfig/iptables
 
-nmcli con modify eth0 ipv4.dns-search "$(dnsdomainname) cluster.local"
-nmcli con modify eth0 ipv4.dns "$(ifconfig eth0 | awk '/inet / { print $2; }')"
-
-systemctl restart NetworkManager.service
-
-cat >/etc/sysconfig/atomic-openshift-master-api <<EOF
-OPTIONS=--loglevel=2 --listen=https://0.0.0.0:8443 --master=https://$(hostname --fqdn):8443
-CONFIG_FILE=/etc/origin/master/master-config.yaml
-OPENSHIFT_DEFAULT_REGISTRY=docker-registry.default.svc:5000
-
-
-# Proxy configuration
-# See https://docs.openshift.com/enterprise/latest/install_config/install/advanced_install.html#configuring-global-proxy
-EOF
-
-cat >/etc/sysconfig/atomic-openshift-master-controllers <<'EOF'
-OPTIONS=--loglevel=2 --listen=https://0.0.0.0:8444
-CONFIG_FILE=/etc/origin/master/master-config.yaml
-OPENSHIFT_DEFAULT_REGISTRY=docker-registry.default.svc:5000
-
-
-# Proxy configuration
-# See https://docs.openshift.com/enterprise/latest/install_config/install/advanced_install.html#configuring-global-proxy
-EOF
-
-
-echo "BOOTSTRAP_CONFIG_NAME=node-config-master" >> /etc/sysconfig/atomic-openshift-node
-
-cat >/etc/sysconfig/iptables <<'EOF'
-*nat
-:PREROUTING ACCEPT [0:0]
-:INPUT ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:POSTROUTING ACCEPT [0:0]
-:DOCKER - [0:0]
--A PREROUTING -m addrtype --dst-type LOCAL -j DOCKER
--A OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -j DOCKER
--A POSTROUTING -s 172.17.0.0/16 ! -o docker0 -j MASQUERADE
--A DOCKER -i docker0 -j RETURN
-COMMIT
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD DROP [0:0]
-:OUTPUT ACCEPT [0:0]
-:DOCKER - [0:0]
-:DOCKER-ISOLATION - [0:0]
-:OS_FIREWALL_ALLOW - [0:0]
--A INPUT -j OS_FIREWALL_ALLOW
--A FORWARD -j DOCKER-ISOLATION
--A FORWARD -o docker0 -j DOCKER
--A FORWARD -o docker0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
--A FORWARD -i docker0 ! -o docker0 -j ACCEPT
--A FORWARD -i docker0 -o docker0 -j ACCEPT
--A DOCKER-ISOLATION -j RETURN
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 2379 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 2380 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 8443 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 8444 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 8053 -j ACCEPT
--A OS_FIREWALL_ALLOW -p udp -m state --state NEW -m udp --dport 8053 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 9090 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 10250 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
--A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
--A OS_FIREWALL_ALLOW -p udp -m state --state NEW -m udp --dport 4789 -j ACCEPT
-COMMIT
-*security
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
--A OUTPUT -d 168.63.129.16/32 -p tcp -m owner --uid-owner 0 -j ACCEPT
--A OUTPUT -d 168.63.129.16/32 -p tcp -m conntrack --ctstate INVALID,NEW -j ACCEPT
-COMMIT
-EOF
-
-iptables-restore </etc/sysconfig/iptables
-
-systemctl mask atomic-openshift-master.service
-
-cat >/usr/lib/systemd/system/atomic-openshift-master-api.service <<'EOF'
-[Unit]
-Description=Atomic OpenShift Master API
-Documentation=https://github.com/openshift/origin
-After=network-online.target
-After=etcd.service
-After=chronyd.service
-After=ntpd.service
-Before=atomic-openshift-node.service
-Requires=network-online.target
-
-[Service]
-Type=notify
-EnvironmentFile=/etc/sysconfig/atomic-openshift-master-api
-Environment=GOTRACEBACK=crash
-ExecStart=/usr/bin/openshift start master api --config=${CONFIG_FILE} $OPTIONS
-LimitNOFILE=131072
-LimitCORE=infinity
-WorkingDirectory=/var/lib/origin
-SyslogIdentifier=atomic-openshift-master-api
-Restart=always
-RestartSec=5s
-
-[Install]
-WantedBy=multi-user.target
-WantedBy=atomic-openshift-node.service
-EOF
-
-cat >/usr/lib/systemd/system/atomic-openshift-master-controllers.service <<'EOF'
-[Unit]
-Description=Atomic OpenShift Master Controllers
-Documentation=https://github.com/openshift/origin
-After=network-online.target
-After=atomic-openshift-master-api.service
-Wants=atomic-openshift-master-api.service
-Requires=network-online.target
-
-[Service]
-Type=notify
-EnvironmentFile=/etc/sysconfig/atomic-openshift-master-controllers
-Environment=GOTRACEBACK=crash
-ExecStart=/usr/bin/openshift start master controllers --config=${CONFIG_FILE} $OPTIONS
-LimitNOFILE=131072
-LimitCORE=infinity
-WorkingDirectory=/var/lib/origin
-SyslogIdentifier=atomic-openshift-master-controllers
-Restart=always
-RestartSec=5s
-
-[Install]
-WantedBy=multi-user.target
-EOF
+sed -i -e "s#--master=.*#--master=https://$(hostname --fqdn):8443#" /etc/sysconfig/atomic-openshift-master-api
 
 rm -rf /etc/etcd/* /etc/origin/master/* /etc/origin/node/*
+
+oc adm create-bootstrap-policy-file --filename=/etc/origin/master/policy.json
 
 ( cd / && base64 -d <<< {{ .ConfigBundle }} | tar -xz)
 
@@ -177,10 +37,13 @@ update-ca-trust
 # ln -s /etc/origin/node/node-client-ca.crt /etc/docker/certs.d/docker-registry.default.svc:5000
 
 # note: atomic-openshift-node crash loops until master is up
-for unit in etcd.service atomic-openshift-master-api.service atomic-openshift-master-controllers.service atomic-openshift-node.service; do
+for unit in etcd.service atomic-openshift-master-api.service atomic-openshift-master-controllers.service; do
 	systemctl enable $unit
 	systemctl start $unit
 done
+
+mkdir -p /root/.kube
+cp /etc/origin/master/admin.kubeconfig /root/.kube/config
 
 export KUBECONFIG=/etc/origin/master/admin.kubeconfig
 
@@ -192,10 +55,42 @@ while ! oc get svc kubernetes &>/dev/null; do
 	sleep 1
 done
 
-
 oc create configmap node-config-master --namespace openshift-node --from-file=node-config.yaml=/tmp/bootstrapconfigs/master-config.yaml
 oc create configmap node-config-compute --namespace openshift-node --from-file=node-config.yaml=/tmp/bootstrapconfigs/compute-config.yaml
 oc create configmap node-config-infra --namespace openshift-node --from-file=node-config.yaml=/tmp/bootstrapconfigs/infra-config.yaml
+
+# must start atomic-openshift-node after master is fully up and running
+# otherwise the implicit dns change may cause master startup to fail
+systemctl enable atomic-openshift-node.service
+systemctl start atomic-openshift-node.service &
+
+# TODO: run a CSR auto-approver
+# https://github.com/kargakis/acs-engine/issues/46
+csrs=($(oc get csr -o name))
+while [[ ${#csrs[@]} != "3" ]]; do
+	sleep 2
+	csrs=($(oc get csr -o name))
+	if [[ ${#csrs[@]} == "3" ]]; then
+		break
+	fi
+done
+
+for csr in ${csrs[@]}; do
+	oc adm certificate approve $csr
+done
+
+csrs=($(oc get csr -o name))
+while [[ ${#csrs[@]} != "6" ]]; do
+	sleep 2
+	csrs=($(oc get csr -o name))
+	if [[ ${#csrs[@]} == "6" ]]; then
+		break
+	fi
+done
+
+for csr in ${csrs[@]}; do
+	oc adm certificate approve $csr
+done
 
 # TODO: do this, and more (registry console, service catalog, tsb, asb), the proper way
 
@@ -226,37 +121,6 @@ for file in /usr/share/ansible/openshift-ansible/roles/openshift_examples/files/
 	  /usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/v3.7/xpaas-streams/*.json \
 	  /usr/share/ansible/openshift-ansible/roles/openshift_examples/files/examples/v3.7/xpaas-templates/*.json; do
 	oc create -n openshift -f $file
-done
-
-mkdir -p /root/.kube
-cp /etc/origin/master/admin.kubeconfig /root/.kube/config
-
-# TODO: run a CSR auto-approver
-# https://github.com/kargakis/acs-engine/issues/46
-csrs=($(oc get csr -o name))
-while [[ ${#csrs[@]} != "3" ]]; do
-	sleep 2
-	csrs=($(oc get csr -o name))
-	if [[ ${#csrs[@]} == "3" ]]; then
-		break
-	fi
-done
-
-for csr in ${csrs[@]}; do
-	oc adm certificate approve $csr
-done
-
-csrs=($(oc get csr -o name))
-while [[ ${#csrs[@]} != "6" ]]; do
-	sleep 2
-	csrs=($(oc get csr -o name))
-	if [[ ${#csrs[@]} == "6" ]]; then
-		break
-	fi
-done
-
-for csr in ${csrs[@]}; do
-	oc adm certificate approve $csr
 done
 
 # TODO: possibly wait here for convergence?
