@@ -537,7 +537,7 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {},
                 "protectedSettings": {
-                    "script": "{{ Base64 (OpenShiftGetNodeSh "infra1") }}"
+                    "script": "{{ Base64 (OpenShiftGetNodeSh true) }}"
                 }
             }
         },
@@ -556,7 +556,7 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {},
                 "protectedSettings": {
-                    "script": "{{ Base64 (OpenShiftGetNodeSh "node1") }}"
+                    "script": "{{ Base64 (OpenShiftGetNodeSh false) }}"
                 }
             }
         }

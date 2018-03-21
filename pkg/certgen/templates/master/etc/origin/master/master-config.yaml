@@ -60,13 +60,13 @@ controllers: '*'
 corsAllowedOrigins:
 - (?i)//127\.0\.0\.1(:|\z)
 - (?i)//localhost(:|\z)
-- (?i)//{{ QuoteMeta (index (index .Nodes 0).IPs 0).String }}(:|\z)
+- (?i)//{{ QuoteMeta (index .Master.IPs 0).String }}(:|\z)
 - (?i)//kubernetes\.default(:|\z)
 - (?i)//kubernetes\.default\.svc\.cluster\.local(:|\z)
 - (?i)//kubernetes(:|\z)
 - (?i)//{{ QuoteMeta .ExternalMasterHostname }}(:|\z)
 - (?i)//openshift\.default(:|\z)
-- (?i)//{{ QuoteMeta (index .Nodes 0).Hostname }}(:|\z)
+- (?i)//{{ QuoteMeta .Master.Hostname }}(:|\z)
 - (?i)//openshift\.default\.svc(:|\z)
 - (?i)//kubernetes\.default\.svc(:|\z)
 - (?i)//172\.30\.0\.1(:|\z)
@@ -80,7 +80,7 @@ etcdClientInfo:
   certFile: master.etcd-client.crt
   keyFile: master.etcd-client.key
   urls:
-  - https://{{ (index .Nodes 0).Hostname }}:2379
+  - https://{{ .Master.Hostname }}:2379
 etcdStorageConfig:
   kubernetesStoragePrefix: kubernetes.io
   kubernetesStorageVersion: v1
@@ -109,7 +109,7 @@ kubernetesMasterConfig:
     cluster-signing-key-file:
       - "/etc/origin/master/ca.key"
   masterCount: 1
-  masterIP: {{ (index (index .Nodes 0).IPs 0).String }}
+  masterIP: {{ (index .Master.IPs 0).String }}
   podEvictionTimeout: null
   proxyClientInfo:
     certFile: master.proxy-client.crt
@@ -132,7 +132,7 @@ masterClients:
     contentType: application/vnd.kubernetes.protobuf
     qps: 300
   openshiftLoopbackKubeConfig: openshift-master.kubeconfig
-masterPublicURL: https://{{ .ExternalMasterHostname }}:{{ (index .Nodes 0).Master.Port }}
+masterPublicURL: https://{{ .ExternalMasterHostname }}:{{ .Master.Port }}
 networkConfig:
   clusterNetworkCIDR: 10.128.0.0/14
   clusterNetworks:
@@ -144,7 +144,7 @@ networkConfig:
   networkPluginName: redhat/openshift-ovs-subnet
   serviceNetworkCIDR: 172.30.0.0/16
 oauthConfig:
-  assetPublicURL: https://{{ .ExternalMasterHostname }}:{{ (index .Nodes 0).Master.Port }}/console/
+  assetPublicURL: https://{{ .ExternalMasterHostname }}:{{ .Master.Port }}/console/
   grantConfig:
     method: auto
   identityProviders:
@@ -157,8 +157,8 @@ oauthConfig:
       file: /etc/origin/master/htpasswd
       kind: HTPasswdPasswordIdentityProvider
   masterCA: ca-bundle.crt
-  masterPublicURL: https://{{ .ExternalMasterHostname }}:{{ (index .Nodes 0).Master.Port }}
-  masterURL: https://{{ .ExternalMasterHostname }}:{{ (index .Nodes 0).Master.Port }}
+  masterPublicURL: https://{{ .ExternalMasterHostname }}:{{ .Master.Port }}
+  masterURL: https://{{ .ExternalMasterHostname }}:{{ .Master.Port }}
   sessionConfig:
     sessionMaxAgeSeconds: 3600
     sessionName: ssn
@@ -192,7 +192,7 @@ serviceAccountConfig:
   publicKeyFiles:
   - serviceaccounts.public.key
 servingInfo:
-  bindAddress: 0.0.0.0:{{ (index .Nodes 0).Master.Port }}
+  bindAddress: 0.0.0.0:{{ .Master.Port }}
   bindNetwork: tcp4
   certFile: master.server.crt
   clientCA: ca.crt

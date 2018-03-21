@@ -12,34 +12,25 @@ import (
 
 // Config represents an OpenShift configuration
 type Config struct {
-	Nodes                  []Node
 	ExternalRouterIP       net.IP
 	ExternalMasterHostname string
 	serial                 serial
 	cas                    map[string]CertAndKey
 	AuthSecret             string
 	EncSecret              string
-}
-
-type openShiftConfig struct {
-	certs       map[string]CertAndKey
-	kubeconfigs map[string]KubeConfig
-}
-
-// Node represents an OpenShift node configuration
-type Node struct {
-	Hostname string
-	IPs      []net.IP
-	Master   *Master
-	Infra    bool
-	openShiftConfig
+	Master                 *Master
+	Bootstrap              KubeConfig
 }
 
 // Master represents an OpenShift master configuration
 type Master struct {
-	Port int16
-	openShiftConfig
-	etcdcerts map[string]CertAndKey
+	Hostname string
+	IPs      []net.IP
+	Port     int16
+
+	certs       map[string]CertAndKey
+	etcdcerts   map[string]CertAndKey
+	kubeconfigs map[string]KubeConfig
 }
 
 // CertAndKey is a certificate and key
@@ -61,53 +52,42 @@ func (s *serial) Get() *big.Int {
 	return big.NewInt(s.i)
 }
 
-func (c *Config) writeMaster(fs filesystem.Filesystem, node *Node) error {
-	err := c.WriteMasterCerts(fs, node)
+// WriteMaster writes the config files for a Master node to a Filesystem.
+func (c *Config) WriteMaster(fs filesystem.Filesystem) error {
+	err := c.WriteMasterCerts(fs)
 	if err != nil {
 		return err
 	}
 
-	err = c.WriteMasterKeypair(fs, node)
+	err = c.WriteMasterKeypair(fs)
 	if err != nil {
 		return err
 	}
 
-	err = c.WriteMasterKubeConfigs(fs, node)
+	err = c.WriteMasterKubeConfigs(fs)
 	if err != nil {
 		return err
 	}
 
-	err = c.WriteMasterFiles(fs, node)
+	err = c.WriteMasterFiles(fs)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return c.WriteNode(fs)
 }
 
-// WriteNode writes the config for a single node to a Filesystem
-func (c *Config) WriteNode(fs filesystem.Filesystem, node *Node) error {
-	if node.Master != nil {
-		err := c.writeMaster(fs, node)
-		if err != nil {
-			return err
-		}
-	}
-
-	err := c.WriteNodeCerts(fs, node)
+// WriteNode writes the config files for bootstrapping a node to a Filesystem.
+func (c *Config) WriteNode(fs filesystem.Filesystem) error {
+	err := c.WriteBootstrapCerts(fs)
 	if err != nil {
 		return err
 	}
 
-	err = c.WriteNodeKubeConfig(fs, node)
+	err = c.WriteBootstrapKubeConfig(fs)
 	if err != nil {
 		return err
 	}
 
-	err = c.WriteNodeFiles(fs, node)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c.WriteNodeFiles(fs)
 }
