@@ -14,6 +14,7 @@ kind: NodeConfig
 kubeletArguments:
   node-labels:
   - node-role.kubernetes.io/master=true
+  - openshift-infra=apiserver
 masterClientConnectionOverrides:
   acceptContentTypes: application/vnd.kubernetes.protobuf,application/json
   contentType: application/vnd.kubernetes.protobuf

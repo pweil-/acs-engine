@@ -68,37 +68,37 @@ func (c *Config) PrepareMasterKubeConfigs() error {
 	localhostEndpoint := fmt.Sprintf("localhost:%d", c.Master.Port)
 	localhostEndpointName := strings.Replace(localhostEndpoint, ".", "-", -1)
 
-	cacert, err := certAsBytes(c.cas["ca"].cert)
+	cacert, err := certAsBytes(c.cas["etc/origin/master/ca"].cert)
 	if err != nil {
 		return err
 	}
-	admincert, err := certAsBytes(c.Master.certs["admin"].cert)
+	admincert, err := certAsBytes(c.Master.certs["etc/origin/master/admin"].cert)
 	if err != nil {
 		return err
 	}
-	adminkey, err := privateKeyAsBytes(c.Master.certs["admin"].key)
+	adminkey, err := privateKeyAsBytes(c.Master.certs["etc/origin/master/admin"].key)
 	if err != nil {
 		return err
 	}
-	mastercert, err := certAsBytes(c.Master.certs["openshift-master"].cert)
+	mastercert, err := certAsBytes(c.Master.certs["etc/origin/master/openshift-master"].cert)
 	if err != nil {
 		return err
 	}
-	masterkey, err := privateKeyAsBytes(c.Master.certs["openshift-master"].key)
+	masterkey, err := privateKeyAsBytes(c.Master.certs["etc/origin/master/openshift-master"].key)
 	if err != nil {
 		return err
 	}
-	aggregatorcert, err := certAsBytes(c.Master.certs["aggregator-front-proxy"].cert)
+	aggregatorcert, err := certAsBytes(c.Master.certs["etc/origin/master/aggregator-front-proxy"].cert)
 	if err != nil {
 		return err
 	}
-	aggregatorkey, err := privateKeyAsBytes(c.Master.certs["aggregator-front-proxy"].key)
+	aggregatorkey, err := privateKeyAsBytes(c.Master.certs["etc/origin/master/aggregator-front-proxy"].key)
 	if err != nil {
 		return err
 	}
 
 	c.Master.kubeconfigs = map[string]KubeConfig{
-		"admin.kubeconfig": {
+		"etc/origin/master/admin.kubeconfig": {
 			APIVersion: "v1",
 			Kind:       "Config",
 			Clusters: []Cluster{
@@ -131,7 +131,7 @@ func (c *Config) PrepareMasterKubeConfigs() error {
 				},
 			},
 		},
-		"aggregator-front-proxy.kubeconfig": {
+		"etc/origin/master/aggregator-front-proxy.kubeconfig": {
 			APIVersion: "v1",
 			Kind:       "Config",
 			Clusters: []Cluster{
@@ -164,7 +164,7 @@ func (c *Config) PrepareMasterKubeConfigs() error {
 				},
 			},
 		},
-		"openshift-master.kubeconfig": {
+		"etc/origin/master/openshift-master.kubeconfig": {
 			APIVersion: "v1",
 			Kind:       "Config",
 			Clusters: []Cluster{
@@ -207,16 +207,16 @@ func (c *Config) PrepareBootstrapKubeConfig() error {
 	ep := fmt.Sprintf("%s:%d", c.ExternalMasterHostname, c.Master.Port)
 	epName := strings.Replace(ep, ".", "-", -1)
 
-	cacert, err := certAsBytes(c.cas["ca"].cert)
+	cacert, err := certAsBytes(c.cas["etc/origin/master/ca"].cert)
 	if err != nil {
 		return err
 	}
 
-	bootstrapCert, err := certAsBytes(c.Master.certs["node-bootstrapper"].cert)
+	bootstrapCert, err := certAsBytes(c.Master.certs["etc/origin/master/node-bootstrapper"].cert)
 	if err != nil {
 		return err
 	}
-	bootstrapKey, err := privateKeyAsBytes(c.Master.certs["node-bootstrapper"].key)
+	bootstrapKey, err := privateKeyAsBytes(c.Master.certs["etc/origin/master/node-bootstrapper"].key)
 	if err != nil {
 		return err
 	}
@@ -265,7 +265,7 @@ func (c *Config) WriteMasterKubeConfigs(fs filesystem.Filesystem) error {
 		if err != nil {
 			return err
 		}
-		err = fs.WriteFile(fmt.Sprintf("etc/origin/master/%s", filename), b, 0600)
+		err = fs.WriteFile(filename, b, 0600)
 		if err != nil {
 			return err
 		}
