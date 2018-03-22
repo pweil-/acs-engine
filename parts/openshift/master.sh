@@ -64,34 +64,6 @@ oc create configmap node-config-infra --namespace openshift-node --from-file=nod
 systemctl enable atomic-openshift-node.service
 systemctl start atomic-openshift-node.service &
 
-# TODO: run a CSR auto-approver
-# https://github.com/kargakis/acs-engine/issues/46
-csrs=($(oc get csr -o name))
-while [[ ${#csrs[@]} != "3" ]]; do
-	sleep 2
-	csrs=($(oc get csr -o name))
-	if [[ ${#csrs[@]} == "3" ]]; then
-		break
-	fi
-done
-
-for csr in ${csrs[@]}; do
-	oc adm certificate approve $csr
-done
-
-csrs=($(oc get csr -o name))
-while [[ ${#csrs[@]} != "6" ]]; do
-	sleep 2
-	csrs=($(oc get csr -o name))
-	if [[ ${#csrs[@]} == "6" ]]; then
-		break
-	fi
-done
-
-for csr in ${csrs[@]}; do
-	oc adm certificate approve $csr
-done
-
 # TODO: do this, and more (registry console, service catalog, tsb, asb), the proper way
 
 oc patch project default -p '{"metadata":{"annotations":{"openshift.io/node-selector": ""}}}'
@@ -124,5 +96,8 @@ for file in /usr/share/ansible/openshift-ansible/roles/openshift_examples/files/
 done
 
 # TODO: possibly wait here for convergence?
+
+# Run the auto approver to approve CSR requests from nodes coming in to the cluster.
+docker run -d --net=host -v /etc/origin/master/admin.kubeconfig:/var/lib/origin/openshift.local.config/master/admin.kubeconfig docker.io/pweil/openshift-bootstrap-approver
 
 exit 0
