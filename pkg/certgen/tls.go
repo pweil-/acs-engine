@@ -181,27 +181,39 @@ func (c *Config) PrepareMasterCerts() error {
 		template *x509.Certificate
 	}{
 		{
-			filename: "ca",
+			filename: "etc/origin/master/ca",
 			template: &x509.Certificate{
 				Subject: pkix.Name{CommonName: fmt.Sprintf("openshift-signer@%d", now.Unix())},
 			},
 		},
 		{
-			filename: "frontproxy-ca",
+			filename: "etc/origin/master/front-proxy-ca",
 			template: &x509.Certificate{
 				Subject: pkix.Name{CommonName: fmt.Sprintf("openshift-signer@%d", now.Unix())},
 			},
 		},
 		{
-			filename: "master.etcd-ca",
+			filename: "etc/origin/master/frontproxy-ca",
+			template: &x509.Certificate{
+				Subject: pkix.Name{CommonName: fmt.Sprintf("aggregator-proxy-car@%d", now.Unix())},
+			},
+		},
+		{
+			filename: "etc/origin/master/master.etcd-ca",
 			template: &x509.Certificate{
 				Subject: pkix.Name{CommonName: fmt.Sprintf("etcd-signer@%d", now.Unix())},
 			},
 		},
 		{
-			filename: "service-signer",
+			filename: "etc/origin/master/service-signer",
 			template: &x509.Certificate{
 				Subject: pkix.Name{CommonName: fmt.Sprintf("openshift-service-serving-signer@%d", now.Unix())},
+			},
+		},
+		{
+			filename: "etc/origin/service-catalog/ca",
+			template: &x509.Certificate{
+				Subject: pkix.Name{CommonName: "service-catalog-signer"},
 			},
 		},
 	}
@@ -217,7 +229,7 @@ func (c *Config) PrepareMasterCerts() error {
 		}
 		template.Subject = cacert.template.Subject
 
-		certAndKey, err := newCertAndKey(cacert.filename, template, nil, nil, cacert.filename == "master.etcd-ca", false)
+		certAndKey, err := newCertAndKey(cacert.filename, template, nil, nil, cacert.filename == "etc/origin/master/master.etcd-ca", false)
 		if err != nil {
 			return err
 		}
@@ -231,21 +243,22 @@ func (c *Config) PrepareMasterCerts() error {
 		signer   string
 	}{
 		{
-			filename: "admin",
+			filename: "etc/origin/master/admin",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{Organization: []string{"system:cluster-admins", "system:masters"}, CommonName: "system:admin"},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			},
 		},
 		{
-			filename: "aggregator-front-proxy",
+			filename: "etc/origin/master/aggregator-front-proxy",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{CommonName: "aggregator-front-proxy"},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			},
+			signer: "etc/origin/master/front-proxy-ca",
 		},
 		{
-			filename: "etcd.server",
+			filename: "etc/origin/master/etcd.server",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{CommonName: c.Master.IPs[0].String()},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
@@ -254,31 +267,31 @@ func (c *Config) PrepareMasterCerts() error {
 			},
 		},
 		{
-			filename: "master.etcd-client",
+			filename: "etc/origin/master/master.etcd-client",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{CommonName: c.Master.Hostname},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 				DNSNames:    []string{c.Master.Hostname}, // TODO
 				IPAddresses: []net.IP{c.Master.IPs[0]},   // TODO
 			},
-			signer: "master.etcd-ca",
+			signer: "etc/origin/master/master.etcd-ca",
 		},
 		{
-			filename: "master.kubelet-client",
+			filename: "etc/origin/master/master.kubelet-client",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{Organization: []string{"system:node-admins"}, CommonName: "system:openshift-node-admin"},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			},
 		},
 		{
-			filename: "master.proxy-client",
+			filename: "etc/origin/master/master.proxy-client",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{CommonName: "system:master-proxy"},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			},
 		},
 		{
-			filename: "master.server",
+			filename: "etc/origin/master/master.server",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{CommonName: c.Master.IPs[0].String()},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
@@ -287,22 +300,22 @@ func (c *Config) PrepareMasterCerts() error {
 			},
 		},
 		{
-			filename: "openshift-aggregator",
+			filename: "etc/origin/master/openshift-aggregator",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{CommonName: "system:openshift-aggregator"},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			},
-			signer: "frontproxy-ca",
+			signer: "etc/origin/master/frontproxy-ca",
 		},
 		{
-			filename: "openshift-master",
+			filename: "etc/origin/master/openshift-master",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{Organization: []string{"system:masters", "system:openshift-master"}, CommonName: "system:openshift-master"},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			},
 		},
 		{
-			filename: "openshift-router",
+			filename: "etc/origin/master/openshift-router",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{CommonName: fmt.Sprintf("*.%s.nip.io", c.ExternalRouterIP.String())},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
@@ -310,11 +323,20 @@ func (c *Config) PrepareMasterCerts() error {
 			},
 		},
 		{
-			filename: "node-bootstrapper",
+			filename: "etc/origin/master/node-bootstrapper",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{CommonName: "system:serviceaccount:openshift-infra:node-bootstrapper"},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 			},
+		},
+		{
+			filename: "etc/origin/service-catalog/apiserver",
+			template: &x509.Certificate{
+				Subject:     pkix.Name{CommonName: "apiserver.kube-service-catalog"},
+				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+				DNSNames:    []string{"apiserver.kube-service-catalog", "apiserver.kube-service-catalog.svc", "apiserver.kube-service-catalog.svc.cluster.local"},
+			},
+			signer: "etc/origin/service-catalog/ca",
 		},
 		// TODO: registry cert
 	}
@@ -333,10 +355,10 @@ func (c *Config) PrepareMasterCerts() error {
 		template.IPAddresses = cert.template.IPAddresses
 
 		if cert.signer == "" {
-			cert.signer = "ca"
+			cert.signer = "etc/origin/master/ca"
 		}
 
-		certAndKey, err := newCertAndKey(cert.filename, template, c.cas[cert.signer].cert, c.cas[cert.signer].key, false, cert.filename == "master.etcd-client")
+		certAndKey, err := newCertAndKey(cert.filename, template, c.cas[cert.signer].cert, c.cas[cert.signer].key, false, cert.filename == "etc/origin/master/master.etcd-client")
 		if err != nil {
 			return err
 		}
@@ -350,24 +372,24 @@ func (c *Config) PrepareMasterCerts() error {
 		signer   string
 	}{
 		{
-			filename: "peer",
+			filename: "etc/etcd/peer",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{CommonName: c.Master.Hostname},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 				DNSNames:    []string{c.Master.Hostname}, // TODO
 				IPAddresses: []net.IP{c.Master.IPs[0]},   // TODO
 			},
-			signer: "master.etcd-ca",
+			signer: "etc/origin/master/master.etcd-ca",
 		},
 		{
-			filename: "server",
+			filename: "etc/etcd/server",
 			template: &x509.Certificate{
 				Subject:     pkix.Name{CommonName: c.Master.Hostname},
 				ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 				DNSNames:    []string{c.Master.Hostname}, // TODO
 				IPAddresses: []net.IP{c.Master.IPs[0]},   // TODO
 			},
-			signer: "master.etcd-ca",
+			signer: "etc/origin/master/master.etcd-ca",
 		},
 	}
 
@@ -398,61 +420,51 @@ func (c *Config) PrepareMasterCerts() error {
 // WriteMasterCerts writes the master certs
 func (c *Config) WriteMasterCerts(fs filesystem.Filesystem) error {
 	for filename, ca := range c.cas {
-		err := writeCert(fs, fmt.Sprintf("etc/origin/master/%s.crt", filename), ca.cert)
+		err := writeCert(fs, fmt.Sprintf("%s.crt", filename), ca.cert)
 		if err != nil {
 			return err
 		}
 
-		err = writePrivateKey(fs, fmt.Sprintf("etc/origin/master/%s.key", filename), ca.key)
+		err = writePrivateKey(fs, fmt.Sprintf("%s.key", filename), ca.key)
 		if err != nil {
 			return err
 		}
 	}
 
-	err := writeCert(fs, "etc/origin/master/ca-bundle.crt", c.cas["ca"].cert)
+	err := writeCert(fs, "etc/origin/master/ca-bundle.crt", c.cas["etc/origin/master/ca"].cert)
 	if err != nil {
 		return err
 	}
 
-	err = writeCert(fs, "etc/origin/master/client-ca-bundle.crt", c.cas["ca"].cert) // TODO: confirm if needed
+	err = writeCert(fs, "etc/origin/master/client-ca-bundle.crt", c.cas["etc/origin/master/ca"].cert) // TODO: confirm if needed
 	if err != nil {
 		return err
 	}
 
-	err = writeCert(fs, "etc/origin/master/front-proxy-ca.crt", c.cas["frontproxy-ca"].cert) // TODO: confirm if needed
-	if err != nil {
-		return err
-	}
-
-	err = writePrivateKey(fs, "etc/origin/master/front-proxy-ca.key", c.cas["frontproxy-ca"].key) // TODO: confirm if needed
-	if err != nil {
-		return err
-	}
-
-	err = writeCert(fs, "etc/etcd/ca.crt", c.cas["master.etcd-ca"].cert)
+	err = writeCert(fs, "etc/etcd/ca.crt", c.cas["etc/origin/master/master.etcd-ca"].cert)
 	if err != nil {
 		return err
 	}
 
 	for filename, cert := range c.Master.certs {
-		err := writeCert(fs, fmt.Sprintf("etc/origin/master/%s.crt", filename), cert.cert)
+		err := writeCert(fs, fmt.Sprintf("%s.crt", filename), cert.cert)
 		if err != nil {
 			return err
 		}
 
-		err = writePrivateKey(fs, fmt.Sprintf("etc/origin/master/%s.key", filename), cert.key)
+		err = writePrivateKey(fs, fmt.Sprintf("%s.key", filename), cert.key)
 		if err != nil {
 			return err
 		}
 	}
 
 	for filename, cert := range c.Master.etcdcerts {
-		err := writeCert(fs, fmt.Sprintf("etc/etcd/%s.crt", filename), cert.cert)
+		err := writeCert(fs, fmt.Sprintf("%s.crt", filename), cert.cert)
 		if err != nil {
 			return err
 		}
 
-		err = writePrivateKey(fs, fmt.Sprintf("etc/etcd/%s.key", filename), cert.key)
+		err = writePrivateKey(fs, fmt.Sprintf("%s.key", filename), cert.key)
 		if err != nil {
 			return err
 		}
@@ -463,17 +475,17 @@ func (c *Config) WriteMasterCerts(fs filesystem.Filesystem) error {
 
 // WriteBootstrapCerts writes the node bootstrap certs
 func (c *Config) WriteBootstrapCerts(fs filesystem.Filesystem) error {
-	err := writeCert(fs, "etc/origin/node/ca.crt", c.cas["ca"].cert)
+	err := writeCert(fs, "etc/origin/node/ca.crt", c.cas["etc/origin/master/ca"].cert)
 	if err != nil {
 		return err
 	}
 
-	err = writeCert(fs, "etc/origin/node/node-bootstrapper.crt", c.Master.certs["node-bootstrapper"].cert)
+	err = writeCert(fs, "etc/origin/node/node-bootstrapper.crt", c.Master.certs["etc/origin/master/node-bootstrapper"].cert)
 	if err != nil {
 		return err
 	}
 
-	return writePrivateKey(fs, "etc/origin/node/node-bootstrapper.key", c.Master.certs["node-bootstrapper"].key)
+	return writePrivateKey(fs, "etc/origin/node/node-bootstrapper.key", c.Master.certs["etc/origin/master/node-bootstrapper"].key)
 }
 
 // WriteMasterKeypair writes the master service account keypair
