@@ -567,7 +567,8 @@ func setAgentNetworkDefaults(a *api.Properties) {
 	if a.MasterProfile != nil && !a.MasterProfile.IsCustomVNET() {
 		subnetCounter := 0
 		for _, profile := range a.AgentPoolProfiles {
-			if a.OrchestratorProfile.OrchestratorType == api.Kubernetes {
+			if a.OrchestratorProfile.OrchestratorType == api.Kubernetes ||
+				a.OrchestratorProfile.OrchestratorType == api.OpenShift {
 				profile.Subnet = a.MasterProfile.Subnet
 			} else {
 				profile.Subnet = fmt.Sprintf(DefaultAgentSubnetTemplate, subnetCounter)
@@ -619,6 +620,7 @@ func setStorageDefaults(a *api.Properties) {
 
 func openShiftSetDefaultCerts(a *api.Properties, location string) (bool, error) {
 	externalMasterHostname := fmt.Sprintf("%s.%s.cloudapp.azure.com", a.MasterProfile.DNSPrefix, location)
+	routerLBHostname := fmt.Sprintf("%s-router.%s.cloudapp.azure.com", a.MasterProfile.DNSPrefix, location)
 	c := certgen.Config{
 		Master: &certgen.Master{
 			Hostname: fmt.Sprintf("%s-master-%s-0", DefaultOpenshiftOrchestratorName, GenerateClusterID(a)),
@@ -631,6 +633,7 @@ func openShiftSetDefaultCerts(a *api.Properties, location string) (bool, error) 
 		ExternalRouterIP:       net.ParseIP(a.OrchestratorProfile.OpenShiftConfig.RouterIP),
 	}
 	a.OrchestratorProfile.OpenShiftConfig.ExternalMasterHostname = externalMasterHostname
+	a.OrchestratorProfile.OpenShiftConfig.RouterLBHostname = routerLBHostname
 
 	err := c.PrepareMasterCerts()
 	if err != nil {

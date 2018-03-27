@@ -281,6 +281,7 @@ type OpenShiftConfig struct {
 
 	ConfigBundles          map[string][]byte `json:"-"`
 	ExternalMasterHostname string            `json:"-"`
+	RouterLBHostname       string            `json:"-"`
 }
 
 // MasterProfile represents the definition of the master cluster
