@@ -277,7 +277,6 @@ type DcosConfig struct {
 // OpenShiftConfig holds configuration for OpenShift
 type OpenShiftConfig struct {
 	KubernetesConfig *KubernetesConfig `json:"kubernetesConfig,omitempty"`
-	RouterIP         string            `json:"routerip,omitempty"`
 
 	ConfigBundles          map[string][]byte `json:"-"`
 	ExternalMasterHostname string            `json:"-"`
