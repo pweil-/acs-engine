@@ -523,6 +523,11 @@ func setMasterNetworkDefaults(a *api.Properties, isUpgrade bool) {
 					a.MasterProfile.FirstConsecutiveStaticIP = DefaultFirstConsecutiveKubernetesStaticIP
 				}
 			}
+		} else if a.OrchestratorProfile.OrchestratorType == api.OpenShift {
+			a.MasterProfile.Subnet = DefaultOpenShiftMasterSubnet
+			if !isUpgrade || len(a.MasterProfile.FirstConsecutiveStaticIP) == 0 {
+				a.MasterProfile.FirstConsecutiveStaticIP = DefaultOpenShiftFirstConsecutiveStaticIP
+			}
 		} else if a.HasWindows() {
 			a.MasterProfile.Subnet = DefaultSwarmWindowsMasterSubnet
 			// FirstConsecutiveStaticIP is not reset if it is upgrade and some value already exists
