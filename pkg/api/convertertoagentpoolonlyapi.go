@@ -224,6 +224,9 @@ func convertVLabsAgentPoolOnlyAgentPoolProfile(vlabs *vlabs.AgentPoolProfile, ap
 	api.AvailabilityProfile = vlabs.AvailabilityProfile
 	api.VnetSubnetID = vlabs.VnetSubnetID
 	api.Subnet = vlabs.GetSubnet()
+	api.IsOpenShiftInfra = vlabs.IsOpenShiftInfra
+	api.ImageName = vlabs.ImageName
+	api.ImageResourceGroup = vlabs.ImageResourceGroup
 }
 
 func convertVLabsAgentPoolOnlyServicePrincipalProfile(vlabs *vlabs.ServicePrincipalProfile, api *ServicePrincipalProfile) {

@@ -190,6 +190,7 @@ MASTER_ARTIFACTS_CONFIG_PLACEHOLDER
     sed -i "s|<kubernetesKubeDNSSpec>|{{WrapAsVariable "kubernetesKubeDNSSpec"}}|g; s|<kubernetesDNSMasqSpec>|{{WrapAsVariable "kubernetesDNSMasqSpec"}}|g; s|<kubernetesExecHealthzSpec>|{{WrapAsVariable "kubernetesExecHealthzSpec"}}|g; s|<kubernetesKubeletClusterDomain>|{{WrapAsVariable "kubernetesKubeletClusterDomain"}}|g; s|<kubeDNSServiceIP>|{{WrapAsVariable "kubeDNSServiceIP"}}|g" "/etc/kubernetes/addons/kube-dns-deployment.yaml"
     sed -i "s|<kubernetesHeapsterSpec>|{{WrapAsVariable "kubernetesHeapsterSpec"}}|g; s|<kubernetesAddonResizerSpec>|{{WrapAsVariable "kubernetesAddonResizerSpec"}}|g" "/etc/kubernetes/addons/kube-heapster-deployment.yaml"
 
+{{if IsKubernetes}}
 {{if .OrchestratorProfile.KubernetesConfig.IsDashboardEnabled}}
     sed -i "s|<kubernetesDashboardSpec>|{{WrapAsVariable "kubernetesDashboardSpec"}}|g" "/etc/kubernetes/addons/kubernetes-dashboard-deployment.yaml"
     sed -i "s|<kubernetesDashboardCPURequests>|{{WrapAsVariable "kubernetesDashboardCPURequests"}}|g" "/etc/kubernetes/addons/kubernetes-dashboard-deployment.yaml"
@@ -205,10 +206,6 @@ MASTER_ARTIFACTS_CONFIG_PLACEHOLDER
     sed -i "s|<kubernetesTillerCPULimit>|{{WrapAsVariable "kubernetesTillerCPULimit"}}|g" "/etc/kubernetes/addons/kube-tiller-deployment.yaml"
     sed -i "s|<kubernetesTillerMemoryLimit>|{{WrapAsVariable "kubernetesTillerMemoryLimit"}}|g" "/etc/kubernetes/addons/kube-tiller-deployment.yaml"
     sed -i "s|<kubernetesTillerMaxHistory>|{{WrapAsVariable "kubernetesTillerMaxHistory"}}|g" "/etc/kubernetes/addons/kube-tiller-deployment.yaml"
-{{end}}
-
-{{if AdminGroupID }}
-    sed -i "s|<aadAdminGroupId>|{{WrapAsVariable "aadAdminGroupId"}}|g" "/etc/kubernetes/addons/aad-default-admin-group-rbac.yaml"
 {{end}}
 
 {{if .OrchestratorProfile.KubernetesConfig.IsACIConnectorEnabled}}
@@ -234,19 +231,11 @@ MASTER_ARTIFACTS_CONFIG_PLACEHOLDER
     sed -i "s|<kubernetesReschedulerMemoryLimit>|{{WrapAsVariable "kubernetesReschedulerMemoryLimit"}}|g" "/etc/kubernetes/addons/kube-rescheduler-deployment.yaml"
 {{end}}
 
-{{if .OrchestratorProfile.IsMetricsServerEnabled}}
-    sed -i "s|<kubernetesMetricsServerSpec>|{{WrapAsVariable "kubernetesMetricsServerSpec"}}|g" "/etc/kubernetes/addons/kube-metrics-server-deployment.yaml"
-{{end}}
-
-{{if EnableDataEncryptionAtRest }}
-    ETCD_ENCRYPTION_SECRET="$(head -c 32 /dev/urandom | base64)"
-    sed -i "s|<etcdEncryptionSecret>|$ETCD_ENCRYPTION_SECRET|g" "/etc/kubernetes/encryption-config.yaml"
-{{end}}
-
 {{if eq .OrchestratorProfile.KubernetesConfig.NetworkPolicy "calico"}}
     # If Calico Policy enabled then update Cluster Cidr
     sed -i "s|<kubeClusterCidr>|{{WrapAsVariable "kubeClusterCidr"}}|g" "/etc/kubernetes/addons/calico-daemonset.yaml"
 {{end}}
+
 {{if UseCloudControllerManager }}
     sed -i "s|<kubernetesCcmImageSpec>|{{WrapAsVariable "kubernetesCcmImageSpec"}}|g" "/etc/kubernetes/manifests/cloud-controller-manager.yaml"
     sed -i "s|<kubernetesCloudControllerManagerConfig>|{{GetK8sRuntimeConfigKeyVals .OrchestratorProfile.KubernetesConfig.CloudControllerManagerConfig}}|g" "/etc/kubernetes/manifests/cloud-controller-manager.yaml"
@@ -256,6 +245,19 @@ MASTER_ARTIFACTS_CONFIG_PLACEHOLDER
     sed -i "s|<kubernetesAPIServerIP>|{{WrapAsVariable "kubernetesAPIServerIP"}}|g" "/etc/kubernetes/manifests/kube-apiserver.yaml"
 {{if not EnablePodSecurityPolicy}}
     sed -i "s|apparmor_parser|d|g" "/etc/systemd/system/kubelet.service"
+{{end}}
+{{if .OrchestratorProfile.IsMetricsServerEnabled}}
+    sed -i "s|<kubernetesMetricsServerSpec>|{{WrapAsVariable "kubernetesMetricsServerSpec"}}|g" "/etc/kubernetes/addons/kube-metrics-server-deployment.yaml"
+{{end}}
+{{end}}
+
+{{if AdminGroupID }}
+    sed -i "s|<aadAdminGroupId>|{{WrapAsVariable "aadAdminGroupId"}}|g" "/etc/kubernetes/addons/aad-default-admin-group-rbac.yaml"
+{{end}}
+
+{{if EnableDataEncryptionAtRest }}
+    ETCD_ENCRYPTION_SECRET="$(head -c 32 /dev/urandom | base64)"
+    sed -i "s|<etcdEncryptionSecret>|$ETCD_ENCRYPTION_SECRET|g" "/etc/kubernetes/encryption-config.yaml"
 {{end}}
 
 - path: "/opt/azure/containers/provision.sh"

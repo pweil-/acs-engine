@@ -11,7 +11,7 @@ import (
 
 	"github.com/Azure/acs-engine/pkg/api/common"
 	"github.com/Azure/acs-engine/pkg/helpers"
-	"github.com/satori/go.uuid"
+	"github.com/satori/uuid"
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
@@ -162,8 +162,8 @@ func (o *OrchestratorProfile) Validate(isUpdate bool) error {
 		}
 	}
 
-	if o.OrchestratorType != Kubernetes && o.KubernetesConfig != nil {
-		return fmt.Errorf("KubernetesConfig can be specified only when OrchestratorType is Kubernetes")
+	if (o.OrchestratorType != Kubernetes && o.OrchestratorType != OpenShift) && o.KubernetesConfig != nil {
+		return fmt.Errorf("KubernetesConfig can be specified only when OrchestratorType is Kubernetes or OpenShift")
 	}
 
 	if o.OrchestratorType != OpenShift && o.OpenShiftConfig != nil {
@@ -177,12 +177,22 @@ func (o *OrchestratorProfile) Validate(isUpdate bool) error {
 	return nil
 }
 
-// Validate implements APIObject
-func (m *MasterProfile) Validate() error {
-	if e := validateDNSName(m.DNSPrefix); e != nil {
-		return e
+func validateImageNameAndGroup(name, resourceGroup string) error {
+	if name == "" && resourceGroup != "" {
+		return errors.New("imageName needs to be specified")
+	}
+	if name != "" && resourceGroup == "" {
+		return errors.New("imageResourceGroup needs to be specified")
 	}
 	return nil
+}
+
+// Validate implements APIObject
+func (m *MasterProfile) Validate() error {
+	if err := validateImageNameAndGroup(m.ImageName, m.ImageResourceGroup); err != nil {
+		return err
+	}
+	return validateDNSName(m.DNSPrefix)
 }
 
 // Validate implements APIObject
@@ -234,7 +244,7 @@ func (a *AgentPoolProfile) Validate(orchestratorType string) error {
 	if len(a.Ports) == 0 && len(a.DNSPrefix) > 0 {
 		return fmt.Errorf("AgentPoolProfile.Ports must be non empty when AgentPoolProfile.DNSPrefix is specified")
 	}
-	return nil
+	return validateImageNameAndGroup(a.ImageName, a.ImageResourceGroup)
 }
 
 // Validate implements APIObject
