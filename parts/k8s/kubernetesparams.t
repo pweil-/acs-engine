@@ -583,11 +583,7 @@
       "type": "string"
     },
     "networkPolicy": {
-      {{if IsKubernetes}}
       "defaultValue": "{{.OrchestratorProfile.KubernetesConfig.NetworkPolicy}}",
-      {{else}}
-      "defaultValue": "none",
-      {{end}}
       "metadata": {
         "description": "The network policy enforcement to use (none|azure|calico)"
       },
@@ -599,11 +595,7 @@
       "type": "string"
     },
     "containerRuntime": {
-      {{if IsKubernetes}}
       "defaultValue": "{{.OrchestratorProfile.KubernetesConfig.ContainerRuntime}}",
-      {{else}}
-      "defaultValue": "docker",
-      {{end}}
       "metadata": {
         "description": "The container runtime to use (docker|clear-containers)"
       },
